@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rafael | Editor de Vídeos Premium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a14;
+    --bg2: #080f1e;
+    --blue: #008000;
+    --blue-light: #5CE65C;
+    --blue-glow: rgba(15,77,15,0.5);
+    --cyan: #CCFFCC;
+    --text: #f0f4ff;
+    --muted: #8ba0c0;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.07);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CURSOR ── */
+  #cursor { position: fixed; width: 10px; height: 10px; background: var(--blue-light); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: transform .1s; }
+  #cursor-ring { position: fixed; width: 36px; height: 36px; border: 1.5px solid rgba(92,230,92,.5); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: left .12s ease, top .12s ease, width .2s, height .2s, opacity .2s; }
+  body:hover #cursor-ring { opacity:1; }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 5vw;
+    backdrop-filter: blur(20px);
+    background: rgba(5,10,20,0.7);
+    border-bottom: 1px solid var(--border);
+    transition: background .3s;
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.3rem;
+    letter-spacing: -.02em;
+  }
+  .nav-logo span { color: var(--blue-light); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; letter-spacing: .02em; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: var(--blue); color: #fff;
+    padding: .55rem 1.4rem; border-radius: 99px; font-size: .88rem; font-weight: 600;
+    text-decoration: none; transition: background .2s, transform .2s, box-shadow .2s;
+    box-shadow: 0 0 24px var(--blue-glow);
+  }
+  .nav-cta:hover { background: var(--blue-light); transform: translateY(-1px); box-shadow: 0 0 36px var(--blue-glow); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 6rem 5vw 4rem;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,128,0,.18) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 30% at 20% 80%, rgba(6,182,212,.08) 0%, transparent 60%),
+                var(--bg);
+    z-index: 0;
+  }
+  .hero-orb {
+    position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none;
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .orb1 { width: 500px; height: 500px; background: rgba(0,128,0,.15); top: -100px; left: 50%; transform: translateX(-50%); }
+  .orb2 { width: 300px; height: 300px; background: rgba(6,182,212,.07); bottom: 50px; right: 5%; animation-delay: -3s; }
+  @keyframes orbFloat { 0%,100%{ transform: translateY(0) scale(1); } 50%{ transform: translateY(-30px) scale(1.05); } }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(0,128,0,.15); border: 1px solid rgba(92,230,92,.3);
+    border-radius: 99px; padding: .4rem 1.1rem; font-size: .8rem;
+    color: var(--blue-light); letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+    margin-bottom: 2rem; position: relative; z-index: 1;
+    animation: fadeUp .8s ease both;
+  }
+  .badge::before { content: ''; width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{ opacity:1; box-shadow: 0 0 0 0 rgba(6,182,212,.4); } 50%{ opacity:.8; box-shadow: 0 0 0 6px rgba(6,182,212,0); } }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.6rem, 6vw, 5.5rem);
+    font-weight: 800; line-height: 1.05; letter-spacing: -.03em;
+    position: relative; z-index: 1;
+    animation: fadeUp .9s .1s ease both;
+  }
+  .hero h1 em { font-style: normal; color: var(--blue-light); display: block; }
+  .hero p {
+    max-width: 560px; margin: 1.5rem auto 0;
+    color: var(--muted); font-size: 1.1rem; line-height: 1.7;
+    position: relative; z-index: 1;
+    animation: fadeUp .9s .2s ease both;
+  }
+  .hero-btns {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    margin-top: 2.5rem; position: relative; z-index: 1;
+    animation: fadeUp .9s .3s ease both;
+  }
+  .btn-primary {
+    background: var(--blue); color: #fff;
+    padding: .85rem 2rem; border-radius: 99px; font-size: 1rem; font-weight: 600;
+    text-decoration: none; transition: all .2s;
+    box-shadow: 0 0 32px var(--blue-glow), 0 4px 20px rgba(0,0,0,.4);
+  }
+  .btn-primary:hover { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 0 48px rgba(92,230,92,.5); }
+  .btn-secondary {
+    border: 1px solid var(--border); color: var(--text);
+    padding: .85rem 2rem; border-radius: 99px; font-size: 1rem; font-weight: 500;
+    text-decoration: none; backdrop-filter: blur(10px); background: rgba(255,255,255,.04);
+    transition: all .2s;
+  }
+  .btn-secondary:hover { border-color: rgba(92,230,92,.4); background: rgba(0,128,0,.1); }
+
+  .hero-stats {
+    display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap;
+    margin-top: 4rem; position: relative; z-index: 1;
+    animation: fadeUp .9s .4s ease both;
+  }
+  .stat { text-align: center; }
+  .stat strong { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; display: block; }
+  .stat span { color: var(--muted); font-size: .85rem; }
+
+  @keyframes fadeUp { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: translateY(0); } }
+
+  /* ── MARQUEE ── */
+  .marquee-wrap { overflow: hidden; padding: 1.5rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: rgba(255,255,255,.02); }
+  .marquee-track { display: flex; gap: 3rem; width: max-content; animation: marquee 20s linear infinite; }
+  .marquee-item { color: var(--muted); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 1rem; }
+  .marquee-item::after { content: '✦'; color: var(--blue-light); font-size: .7rem; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+
+  /* ── SECTIONS SHARED ── */
+  section { padding: 6rem 5vw; position: relative; z-index: 1; }
+  .section-label { font-size: .75rem; letter-spacing: .15em; text-transform: uppercase; color: var(--blue-light); font-weight: 600; margin-bottom: 1rem; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+  .section-sub { color: var(--muted); font-size: 1.05rem; line-height: 1.7; max-width: 520px; margin-top: .8rem; }
+
+  /* ── CAROUSEL ── */
+  .carousel-section { background: var(--bg2); }
+  .carousel-header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 3rem; }
+  .carousel-nav { display: flex; gap: .75rem; }
+  .carousel-btn {
+    width: 46px; height: 46px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--card);
+    display: flex; align-items: center; justify-content: center;
+    cursor: none; transition: all .2s; color: var(--text);
+    font-size: 1.1rem;
+  }
+  .carousel-btn:hover { border-color: var(--blue); background: rgba(0,128,0,.15); color: var(--blue-light); }
+
+  .carousel-track-wrap { overflow: hidden; border-radius: 12px; }
+  .carousel-track {
+    display: flex; gap: 1.5rem;
+    transition: transform .5s cubic-bezier(.25,.46,.45,.94);
+    will-change: transform;
+  }
+  .carousel-card {
+    flex: 0 0 calc(33.333% - 1rem); min-width: 280px;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--card);
+    position: relative; group: true;
+    transition: transform .3s, box-shadow .3s;
+  }
+  .carousel-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(92,230,92,.2); }
+
+  .card-thumb {
+    aspect-ratio: 16/10; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0d1b3e, #0a2140);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-thumb .play-btn {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(0,160,0,.9); border: 2px solid rgba(255,255,255,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: #fff; z-index: 2; position: relative;
+    box-shadow: 0 0 30px rgba(0,128,0,.6);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .carousel-card:hover .play-btn { transform: scale(1.1); box-shadow: 0 0 50px rgba(92,230,92,.8); }
+
+  .card-thumb-label {
+    position: absolute; top: .75rem; right: .75rem;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(8px);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: .3rem .7rem; font-size: .75rem; color: var(--muted); font-weight: 500;
+  }
+
+  /* Thumb illustrations */
+  .thumb-a { background: linear-gradient(135deg, #0d1b4e 0%, #091428 100%); }
+  .thumb-b { background: linear-gradient(135deg, #0a2c2c 0%, #051414 100%); }
+  .thumb-c { background: linear-gradient(135deg, #2a0e3a 0%, #100820 100%); }
+  .thumb-d { background: linear-gradient(135deg, #1a1000 0%, #0c0800 100%); }
+  .thumb-e { background: linear-gradient(135deg, #001a2c 0%, #000e1a 100%); }
+  .thumb-f { background: linear-gradient(135deg, #1a0010 0%, #0c000a 100%); }
+
+  .thumb-gfx {
+    position: absolute; inset: 0; opacity: .3;
+    background-image: radial-gradient(circle at 30% 40%, rgba(92,230,92,.5) 0%, transparent 50%),
+                      radial-gradient(circle at 70% 60%, rgba(6,182,212,.3) 0%, transparent 40%);
+  }
+  .thumb-lines {
+    position: absolute; inset: 0; overflow: hidden; opacity: .15;
+  }
+  .thumb-lines::before {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+    background: repeating-linear-gradient(transparent, transparent 3px, rgba(92,230,92,.3) 3px, rgba(92,230,92,.3) 4px);
+  }
+
+  .card-body { padding: 1.2rem 1.4rem 1.4rem; }
+  .card-tag { font-size: .72rem; color: var(--blue-light); letter-spacing: .1em; text-transform: uppercase; font-weight: 600; margin-bottom: .5rem; }
+  .card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; line-height: 1.3; }
+  .card-meta { display: flex; align-items: center; gap: 1rem; margin-top: .8rem; }
+  .card-metric { font-size: .8rem; color: var(--muted); }
+  .card-metric strong { color: var(--text); }
+
+  .carousel-dots { display: flex; justify-content: center; gap: .5rem; margin-top: 2rem; }
+  .dot { width: 6px; height: 6px; border-radius: 3px; background: var(--border); cursor: none; transition: all .3s; }
+  .dot.active { width: 22px; background: var(--blue-light); }
+
+  /* ── SERVICES ── */
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .service-card {
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--card); padding: 2rem;
+    transition: all .3s; position: relative; overflow: hidden;
+  }
+  .service-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--blue-glow) 0%, transparent 60%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .service-card:hover::before { opacity: 1; }
+  .service-card:hover { border-color: rgba(92,230,92,.3); transform: translateY(-2px); }
+  .service-icon { font-size: 1.8rem; margin-bottom: 1.2rem; }
+  .service-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.15rem; margin-bottom: .6rem; }
+  .service-card p { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+  .service-arrow { margin-top: 1.5rem; color: var(--blue-light); font-size: .85rem; font-weight: 600; display: flex; align-items: center; gap: .4rem; }
+
+  /* ── PROCESS ── */
+  .process-section { background: var(--bg2); }
+  .process-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; margin-top: 3.5rem; position: relative; }
+  .process-steps::before {
+    content: ''; position: absolute; top: 28px; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--blue) 30%, var(--blue) 70%, transparent);
+    opacity: .3;
+  }
+  .step { text-align: center; padding: 0 1.5rem 2rem; position: relative; }
+  .step-num {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 1.5px solid rgba(92,230,92,.4);
+    background: rgba(0,128,0,.15);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.4rem;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--blue-light);
+    position: relative; z-index: 1;
+    box-shadow: 0 0 20px rgba(0,128,0,.2);
+  }
+  .step h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: .5rem; }
+  .step p { color: var(--muted); font-size: .87rem; line-height: 1.6; }
+
+  /* ── TESTIMONIALS ── */
+  .testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .testi-card {
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--card); padding: 1.8rem;
+    transition: border-color .3s;
+  }
+  .testi-card:hover { border-color: rgba(92,230,92,.25); }
+  .stars { color: #f59e0b; font-size: .85rem; letter-spacing: .1em; margin-bottom: 1rem; }
+  .testi-text { color: var(--muted); font-size: .93rem; line-height: 1.7; font-style: italic; margin-bottom: 1.4rem; }
+  .testi-author { display: flex; align-items: center; gap: .9rem; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; flex-shrink: 0; }
+  .av1 { background: linear-gradient(135deg, #008000, #5CE65C); }
+  .av2 { background: linear-gradient(135deg, #0F4D0F, #5CE65C); }
+  .av3 { background: linear-gradient(135deg, #008000, #CCFFCC); }
+  .author-name { font-weight: 600; font-size: .9rem; }
+  .author-role { color: var(--muted); font-size: .78rem; }
+
+  /* ── CTA ── */
+  .cta-section {
+    text-align: center; padding: 7rem 5vw;
+    background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,128,0,.15) 0%, transparent 70%);
+    border-top: 1px solid var(--border);
+  }
+  .cta-section .section-title { font-size: clamp(2rem, 5vw, 4rem); margin-bottom: 1.2rem; }
+  .cta-section p { color: var(--muted); font-size: 1.05rem; max-width: 500px; margin: 0 auto 2.5rem; line-height: 1.7; }
+  .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-white { background: #fff; color: #050a14; padding: .85rem 2rem; border-radius: 99px; font-size: 1rem; font-weight: 700; text-decoration: none; transition: all .2s; }
+  .btn-white:hover { background: var(--blue-light); color: #fff; transform: translateY(-2px); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 5vw; display: flex; align-items: center; justify-content: space-between; flex-wrap: gap;
+    color: var(--muted); font-size: .85rem;
+  }
+  footer .nav-logo { font-size: 1.1rem; }
+  footer a { color: var(--muted); text-decoration: none; transition: color .2s; }
+  footer a:hover { color: var(--blue-light); }
+
+  /* ── REVEAL ANIMATIONS ── */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: .1s; }
+  .reveal-delay-2 { transition-delay: .2s; }
+  .reveal-delay-3 { transition-delay: .3s; }
+  .reveal-delay-4 { transition-delay: .4s; }
+
+  /* ── CLIENTS SCROLL ── */
+  .clients-section { background: var(--bg2); overflow: hidden; }
+  .clients-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 3rem; }
+  .clients-col { position: relative; height: 620px; overflow: hidden; }
+  .clients-col::before, .clients-col::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 100px; z-index: 2; pointer-events: none;
+  }
+  .clients-col::before { top: 0; background: linear-gradient(to bottom, var(--bg2), transparent); }
+  .clients-col::after  { bottom: 0; background: linear-gradient(to top, var(--bg2), transparent); }
+
+  .clients-inner {
+    display: flex; flex-direction: column; gap: 1rem;
+    animation: scrollUp var(--dur, 18s) linear infinite;
+  }
+  .clients-inner:hover { animation-play-state: paused; }
+  @keyframes scrollUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+
+  .client-card {
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--card); position: relative;
+    transition: border-color .3s, transform .3s;
+    flex-shrink: 0;
+  }
+  .client-card:hover { border-color: rgba(92,230,92,.4); transform: scale(1.02); }
+  .client-img {
+    width: 100%; aspect-ratio: 3/4; object-fit: cover;
+    display: block; background: linear-gradient(135deg, #0d1b3e, #091428);
+  }
+  .client-placeholder {
+    width: 100%; aspect-ratio: 3/4;
+    background: linear-gradient(135deg, #0d1b3e 0%, #091428 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem;
+  }
+  .client-placeholder .cp-avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem;
+    border: 2px solid rgba(92,230,92,.3);
+  }
+  .client-placeholder .cp-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .95rem; }
+  .client-placeholder .cp-handle { color: var(--muted); font-size: .78rem; }
+  .client-ig-btn {
+    position: absolute; top: .75rem; right: .75rem;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(0,0,0,.5); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.15);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; text-decoration: none;
+    opacity: 0; transition: opacity .2s, background .2s;
+  }
+  .client-card:hover .client-ig-btn { opacity: 1; }
+  .client-ig-btn:hover { background: var(--blue); border-color: var(--blue); }
+  .client-ig-btn svg { width: 16px; height: 16px; }
+
+  @media(max-width:900px){ .clients-cols { grid-template-columns: repeat(2,1fr); } .clients-col:last-child { display: none; } }
+  @media(max-width:580px){ .clients-cols { grid-template-columns: 1fr; } .clients-col:not(:first-child) { display: none; } }
+
+  /* ── VIEWS COUNTER ── */
+  .views-section {
+    text-align: center;
+    background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,128,0,.15) 0%, transparent 70%);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  }
+  .views-number {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(4rem, 14vw, 10rem);
+    font-weight: 800; line-height: 1;
+    letter-spacing: -.04em;
+    background: linear-gradient(135deg, #fff 30%, var(--blue-light) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin: 1.5rem 0 .5rem;
+  }
+  .views-label { color: var(--muted); font-size: 1rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+  .views-sub { color: var(--muted); font-size: .9rem; margin-top: 1rem; }
+  .views-bar-wrap { max-width: 480px; margin: 2rem auto 0; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .views-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue), var(--cyan)); border-radius: 2px; transition: width 2.5s cubic-bezier(.25,.46,.45,.94); }
+
+  /* ── PRINTS CAROUSEL ── */
+  .prints-section { background: var(--bg); }
+  .prints-track-wrap { overflow: hidden; margin-top: 2.5rem; }
+  .prints-track {
+    display: flex; gap: 1.2rem;
+    transition: transform .5s cubic-bezier(.25,.46,.45,.94);
+  }
+  .print-card {
+    flex: 0 0 calc(25% - 1rem); min-width: 220px;
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border); background: var(--card);
+    transition: transform .3s, box-shadow .3s, border-color .3s;
+    position: relative;
+  }
+  .print-card:hover { transform: translateY(-4px) scale(1.01); border-color: rgba(92,230,92,.3); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .print-img {
+    width: 100%; aspect-ratio: 9/16; object-fit: cover;
+    display: block;
+    background: linear-gradient(160deg, #0d1b3e, #091428);
+  }
+  .print-placeholder {
+    width: 100%; aspect-ratio: 9/16;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6rem;
+    position: relative; overflow: hidden;
+  }
+  .print-placeholder::before { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, #0d1b3e, #091428); }
+  .print-gfx { position: absolute; inset: 0; background: radial-gradient(circle at 40% 30%, rgba(92,230,92,.3) 0%, transparent 50%); }
+  .print-icon { font-size: 2.5rem; position: relative; z-index: 1; }
+  .print-views { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; position: relative; z-index: 1; }
+  .print-label-sm { color: var(--muted); font-size: .75rem; position: relative; z-index: 1; letter-spacing: .05em; }
+  .print-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 1rem; background: linear-gradient(to top, rgba(0,0,0,.8) 0%, transparent 100%);
+  }
+  .print-tag { font-size: .72rem; color: var(--blue-light); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  .print-desc { font-size: .85rem; font-weight: 600; margin-top: .2rem; line-height: 1.3; }
+
+  .prints-nav { display: flex; gap: .75rem; }
+  .prints-dots { display: flex; justify-content: center; gap: .5rem; margin-top: 1.8rem; }
+
+  /* ── MOBILE ── */
+  @media(max-width:768px){
+    .nav-links { display: none; }
+    .carousel-card { flex: 0 0 85%; }
+    .process-steps::before { display: none; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+    .print-card { flex: 0 0 70%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Rafael<span>.</span></div>
+  <ul class="nav-links">
+    <li><a href="#portfolio">Portfólio</a></li>
+    <li><a href="#servicos">Serviços</a></li>
+    <li><a href="#processo">Processo</a></li>
+    <li><a href="#depoimentos">Clientes</a></li>
+  </ul>
+  <a href="#contato" class="nav-cta">Solicitar Orçamento</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+
+  <div class="badge">🎬 Vagas disponíveis — Janeiro 2026</div>
+
+  <h1>
+    Edição que<br>
+    <em>Retém, Converte</em>
+    e Posiciona
+  </h1>
+  <p>Não é só cortar vídeo. É construir narrativa, prender atenção e elevar a percepção do seu conteúdo — do primeiro ao último segundo.</p>
+
+  <div class="hero-btns">
+    <a href="#contato" class="btn-primary">Quero meu Projeto →</a>
+    <a href="#portfolio" class="btn-secondary">Ver Portfólio</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <strong>50+</strong>
+      <span>Projetos entregues</span>
+    </div>
+    <div class="stat">
+      <strong>98%</strong>
+      <span>Clientes satisfeitos</span>
+    </div>
+    <div class="stat">
+      <strong>72h</strong>
+      <span>Prazo de entrega</span>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">Reels Virais</span>
+    <span class="marquee-item">YouTube Premium</span>
+    <span class="marquee-item">Storytelling</span>
+    <span class="marquee-item">Motion Graphics</span>
+    <span class="marquee-item">Color Grading</span>
+    <span class="marquee-item">Podcasts</span>
+    <span class="marquee-item">Ads de Alta Conversão</span>
+    <span class="marquee-item">Documentários</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item">Reels Virais</span>
+    <span class="marquee-item">YouTube Premium</span>
+    <span class="marquee-item">Storytelling</span>
+    <span class="marquee-item">Motion Graphics</span>
+    <span class="marquee-item">Color Grading</span>
+    <span class="marquee-item">Podcasts</span>
+    <span class="marquee-item">Ads de Alta Conversão</span>
+    <span class="marquee-item">Documentários</span>
+  </div>
+</div>
+
+<!-- CAROUSEL PORTFOLIO -->
+<section class="carousel-section" id="portfolio">
+  <div class="carousel-header">
+    <div>
+      <div class="section-label reveal">Portfólio</div>
+      <h2 class="section-title reveal reveal-delay-1">Projetos que<br>fazem diferença</h2>
+    </div>
+    <div class="carousel-nav">
+      <button class="carousel-btn" id="prev" aria-label="Anterior">&#8592;</button>
+      <button class="carousel-btn" id="next" aria-label="Próximo">&#8594;</button>
+    </div>
+  </div>
+
+  <div class="carousel-track-wrap">
+    <div class="carousel-track" id="track">
+
+      <div class="carousel-card">
+        <div class="card-thumb thumb-a">
+          <div class="thumb-gfx"></div>
+          <div class="thumb-lines"></div>
+          <div class="play-btn">▶</div>
+          <span class="card-thumb-label">Reels · 60s</span>
+        </div>
+        <div class="card-body">
+          <div class="card-tag">Criador de Conteúdo</div>
+          <div class="card-title">Série de Reels para Marca Pessoal — Lifestyle Premium</div>
+          <div class="card-meta">
+            <span class="card-metric"><strong>+2.4M</strong> visualizações</span>
+            <span class="card-metric"><strong>+18k</strong> seguidores</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-card">
+        <div class="card-thumb thumb-b">
+          <div class="thumb-gfx"></div>
+          <div class="thumb-lines"></div>
+          <div class="play-btn">▶</div>
+          <span class="card-thumb-label">YouTube · 22min</span>
+        </div>
+        <div class="card-body">
+          <div class="card-tag">Educação Online</div>
+          <div class="card-title">Documentário Educacional — Metodologia de Alta Performance</div>
+          <div class="card-meta">
+            <span class="card-metric"><strong>580k</strong> views</span>
+            <span class="card-metric"><strong>72%</strong> retenção</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-card">
+        <div class="card-thumb thumb-c">
+          <div class="thumb-gfx"></div>
+          <div class="thumb-lines"></div>
+          <div class="play-btn">▶</div>
+          <span class="card-thumb-label">Ad · 30s</span>
+        </div>
+        <div class="card-body">
+          <div class="card-tag">E-commerce</div>
+          <div class="card-title">Campanha de Lançamento — Produto Digital High-Ticket</div>
+          <div class="card-meta">
+            <span class="card-metric"><strong>4.2x</strong> ROAS</span>
+            <span class="card-metric"><strong>R$380k</strong> faturado</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-card">
+        <div class="card-thumb thumb-d">
+          <div class="thumb-gfx"></div>
+          <div class="thumb-lines"></div>
+          <div class="play-btn">▶</div>
+          <span class="card-thumb-label">Podcast · 45min</span>
+        </div>
+        <div class="card-body">
+          <div class="card-tag">Podcast</div>
+          <div class="card-title">Edição Completa de Episódios — Canal Business com Clipes</div>
+          <div class="card-meta">
+            <span class="card-metric"><strong>120k</strong> ouvintes</span>
+            <span class="card-metric"><strong>#3</strong> no Spotify</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-card">
+        <div class="card-thumb thumb-e">
+          <div class="thumb-gfx"></div>
+          <div class="thumb-lines"></div>
+          <div class="play-btn">▶</div>
+          <span class="card-thumb-label">VSL · 8min</span>
+        </div>
+        <div class="card-body">
+          <div class="card-tag">Lançamento</div>
+          <div class="card-title">Vídeo de Vendas — Infoproduto com Roteiro Persuasivo</div>
+          <div class="card-meta">
+            <span class="card-metric"><strong>12%</strong> conv. rate</span>
+            <span class="card-metric"><strong>R$92k</strong> em 7 dias</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-card">
+        <div class="card-thumb thumb-f">
+          <div class="thumb-gfx"></div>
+          <div class="thumb-lines"></div>
+          <div class="play-btn">▶</div>
+          <span class="card-thumb-label">Série · 6 eps</span>
+        </div>
+        <div class="card-body">
+          <div class="card-tag">Marca Pessoal</div>
+          <div class="card-title">Minisérie de Conteúdo — Posicionamento de Especialista</div>
+          <div class="card-meta">
+            <span class="card-metric"><strong>+41k</strong> inscritos</span>
+            <span class="card-metric"><strong>8.4%</strong> engajamento</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="carousel-dots" id="dots"></div>
+</section>
+
+<!-- SERVICES -->
+<section id="servicos">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="section-label reveal">Serviços</div>
+    <h2 class="section-title reveal reveal-delay-1">O que eu entrego<br>pra você</h2>
+    <p class="section-sub reveal reveal-delay-2">Cada projeto é único. Cada entrega é estratégica.</p>
+
+    <div class="services-grid">
+      <div class="service-card reveal reveal-delay-1">
+        <div class="service-icon">🎬</div>
+        <h3>Edição Premium para YouTube</h3>
+        <p>Edição completa com motion, color grade, trilha e SEO de thumbnail. Conteúdo que retém do início ao fim.</p>
+        <div class="service-arrow">Ver mais →</div>
+      </div>
+      <div class="service-card reveal reveal-delay-2">
+        <div class="service-icon">⚡</div>
+        <h3>Reels & TikTok Virais</h3>
+        <p>Cortes rápidos, hook magnético, legendas animadas e estética que para o scroll. Feito pra viralizar.</p>
+        <div class="service-arrow">Ver mais →</div>
+      </div>
+      <div class="service-card reveal reveal-delay-3">
+        <div class="service-icon">🎯</div>
+        <h3>Vídeos de Vendas (VSL)</h3>
+        <p>Narrativa persuasiva, pacing estratégico e edição que conduz a decisão de compra. ROAS que paga o investimento.</p>
+        <div class="service-arrow">Ver mais →</div>
+      </div>
+      <div class="service-card reveal reveal-delay-4">
+        <div class="service-icon">🎙️</div>
+        <h3>Podcast Completo</h3>
+        <p>Edição de áudio, vídeo e clipes para redes. Um episódio vira 10 conteúdos estratégicos.</p>
+        <div class="service-arrow">Ver mais →</div>
+      </div>
+      <div class="service-card reveal reveal-delay-1">
+        <div class="service-icon">✨</div>
+        <h3>Motion Graphics</h3>
+        <p>Lower thirds, intros, gráficos animados e visualizações de dados. Seu vídeo num outro nível.</p>
+        <div class="service-arrow">Ver mais →</div>
+      </div>
+      <div class="service-card reveal reveal-delay-2">
+        <div class="service-icon">🚀</div>
+        <h3>Pacote Mensal</h3>
+        <p>Parceria contínua com prioridade de atendimento, revisões ilimitadas e preço especial de cliente fixo.</p>
+        <div class="service-arrow">Ver mais →</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="process-section" id="processo">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="section-label reveal" style="text-align:center;">Processo</div>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;">Como funciona</h2>
+    <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;">Simples, rápido e sem dor de cabeça</p>
+
+    <div class="process-steps">
+      <div class="step reveal reveal-delay-1">
+        <div class="step-num">01</div>
+        <h4>Briefing</h4>
+        <p>Você me conta o objetivo, público e referências. Em até 24h tenho o plano pronto.</p>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-num">02</div>
+        <h4>Envio do Material</h4>
+        <p>Você manda o raw via Drive ou WeTransfer. Aceito qualquer formato.</p>
+      </div>
+      <div class="step reveal reveal-delay-3">
+        <div class="step-num">03</div>
+        <h4>Edição Estratégica</h4>
+        <p>Faço a edição com foco em retenção, narrativa e conversão — não só corte.</p>
+      </div>
+      <div class="step reveal reveal-delay-4">
+        <div class="step-num">04</div>
+        <h4>Revisão & Entrega</h4>
+        <p>Até 2 rodadas de ajuste. Entrega em até 72h prontos pra publicar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="depoimentos">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="section-label reveal">Depoimentos</div>
+    <h2 class="section-title reveal reveal-delay-1">O que meus clientes<br>falam</h2>
+
+    <div class="testi-grid">
+      <div class="testi-card reveal reveal-delay-1">
+        <div class="stars">★★★★★</div>
+        <p class="testi-text">"O Rafael entendeu exatamente o que eu precisava sem precisar falar muito. A edição ficou muito acima do que eu esperava — meu canal cresceu 40% em 2 meses."</p>
+        <div class="testi-author">
+          <div class="avatar av1">LM</div>
+          <div>
+            <div class="author-name">Lucas Mendes</div>
+            <div class="author-role">Criador de Conteúdo · 280k inscritos</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="stars">★★★★★</div>
+        <p class="testi-text">"Meu VSL foi editado com um pacing perfeito. Taxa de conversão saiu de 3% para 11% com o mesmo tráfego. Simplesmente inacreditável o retorno."</p>
+        <div class="testi-author">
+          <div class="avatar av2">AC</div>
+          <div>
+            <div class="author-name">Ana Carolina</div>
+            <div class="author-role">Infoprodutora · Mercado Digital</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-3">
+        <div class="stars">★★★★★</div>
+        <p class="testi-text">"Parceria de 8 meses e só tenho a agradecer. Pontual, criativo e sempre com ideias pra melhorar o conteúdo além do que pedi. Recomendo sem hesitar."</p>
+        <div class="testi-author">
+          <div class="avatar av3">RP</div>
+          <div>
+            <div class="author-name">Rodrigo Peixoto</div>
+            <div class="author-role">CEO · Agência de Marketing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLIENTES SATISFEITOS -->
+<section class="clients-section" id="clientes">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div style="text-align:center;">
+      <div class="section-label reveal">Clientes</div>
+      <h2 class="section-title reveal reveal-delay-1">Perfis que confiam<br>no meu trabalho</h2>
+      <p class="section-sub reveal reveal-delay-2" style="margin:0 auto 2.5rem;text-align:center;">Criadores e marcas com resultados extraordinários nas redes.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;" class="reveal reveal-delay-3">
+        <a href="https://wa.me/55SEUNUMERO" target="_blank" class="btn-primary">💬 Solicitar Orçamento</a>
+        <a href="#portfolio" class="btn-secondary">Ver Portfólio</a>
+      </div>
+    </div>
+
+    <div class="clients-cols">
+      <!-- COL 1 -->
+      <div class="clients-col">
+        <div class="clients-inner" style="--dur:18s;">
+          <!-- BATCH A -->
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">BF</div>
+              <div class="cp-name">Befit App</div>
+              <div class="cp-handle">@befitapp.br</div>
+            </div>
+            <a href="https://www.instagram.com/befitapp.br" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">NB</div>
+              <div class="cp-name">Fuad Lucas</div>
+              <div class="cp-handle">@ninjabodybuilder</div>
+            </div>
+            <a href="https://www.instagram.com/ninjabodybuilder" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">BV</div>
+              <div class="cp-name">Bruno Viotti</div>
+              <div class="cp-handle">@bruno_viotti</div>
+            </div>
+            <a href="https://www.instagram.com/bruno_viotti" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <!-- BATCH B (duplicate for loop) -->
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">BF</div>
+              <div class="cp-name">Befit App</div>
+              <div class="cp-handle">@befitapp.br</div>
+            </div>
+            <a href="https://www.instagram.com/befitapp.br" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">NB</div>
+              <div class="cp-name">Fuad Lucas</div>
+              <div class="cp-handle">@ninjabodybuilder</div>
+            </div>
+            <a href="https://www.instagram.com/ninjabodybuilder" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">BV</div>
+              <div class="cp-name">Bruno Viotti</div>
+              <div class="cp-handle">@bruno_viotti</div>
+            </div>
+            <a href="https://www.instagram.com/bruno_viotti" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- COL 2 (reverse / slower) -->
+      <div class="clients-col">
+        <div class="clients-inner" style="--dur:22s;animation-direction:reverse;">
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">RC</div>
+              <div class="cp-name">Ricardo Correia</div>
+              <div class="cp-handle">@rudeboy_pro212</div>
+            </div>
+            <a href="https://www.instagram.com/rudeboy_pro212" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#CCFFCC)">HO</div>
+              <div class="cp-name">Hoierr</div>
+              <div class="cp-handle">@hoierr_</div>
+            </div>
+            <a href="https://www.instagram.com/hoierr_" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">VV</div>
+              <div class="cp-name">Vini Viking</div>
+              <div class="cp-handle">@viniiviking</div>
+            </div>
+            <a href="https://www.instagram.com/viniiviking" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <!-- duplicate -->
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">RC</div>
+              <div class="cp-name">Ricardo Correia</div>
+              <div class="cp-handle">@rudeboy_pro212</div>
+            </div>
+            <a href="https://www.instagram.com/rudeboy_pro212" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#CCFFCC)">HO</div>
+              <div class="cp-name">Hoierr</div>
+              <div class="cp-handle">@hoierr_</div>
+            </div>
+            <a href="https://www.instagram.com/hoierr_" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">VV</div>
+              <div class="cp-name">Vini Viking</div>
+              <div class="cp-handle">@viniiviking</div>
+            </div>
+            <a href="https://www.instagram.com/viniiviking" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- COL 3 -->
+      <div class="clients-col">
+        <div class="clients-inner" style="--dur:15s;">
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">MC</div>
+              <div class="cp-name">Marcelo Cruz</div>
+              <div class="cp-handle">@cruzbodybuilderpro</div>
+            </div>
+            <a href="https://www.instagram.com/cruzbodybuilderpro" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">PA</div>
+              <div class="cp-name">Pantera</div>
+              <div class="cp-handle">@rodriigopantera</div>
+            </div>
+            <a href="https://www.instagram.com/rodriigopantera" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#CCFFCC)">RS</div>
+              <div class="cp-name">Rafaela Santana</div>
+              <div class="cp-handle">@miinimen</div>
+            </div>
+            <a href="https://www.instagram.com/miinimen" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <!-- duplicate -->
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">MC</div>
+              <div class="cp-name">Marcelo Cruz</div>
+              <div class="cp-handle">@cruzbodybuilderpro</div>
+            </div>
+            <a href="https://www.instagram.com/cruzbodybuilderpro" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">PA</div>
+              <div class="cp-name">Pantera</div>
+              <div class="cp-handle">@rodriigopantera</div>
+            </div>
+            <a href="https://www.instagram.com/rodriigopantera" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+          <div class="client-card">
+            <div class="client-placeholder">
+              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#CCFFCC)">RS</div>
+              <div class="cp-name">Rafaela Santana</div>
+              <div class="cp-handle">@miinimen</div>
+            </div>
+            <a href="https://www.instagram.com/miinimen" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIEWS GERADAS -->
+<section class="views-section" id="views">
+  <div class="section-label reveal">Impacto</div>
+  <p class="views-label reveal reveal-delay-1">Views geradas para clientes</p>
+  <div class="views-number" id="views-counter">0</div>
+  <p class="views-sub reveal reveal-delay-2">e crescendo a cada projeto entregue</p>
+  <div class="views-bar-wrap reveal reveal-delay-3">
+    <div class="views-bar" id="views-bar"></div>
+  </div>
+</section>
+
+<!-- PRINTS DOS VÍDEOS -->
+<section class="prints-section" id="prints">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="carousel-header">
+      <div>
+        <div class="section-label reveal">Prints</div>
+        <h2 class="section-title reveal reveal-delay-1">Resultados em<br>números reais</h2>
+      </div>
+      <div class="prints-nav">
+        <button class="carousel-btn" id="prints-prev" aria-label="Anterior">&#8592;</button>
+        <button class="carousel-btn" id="prints-next" aria-label="Próximo">&#8594;</button>
+      </div>
+    </div>
+
+    <div class="prints-track-wrap">
+      <div class="prints-track" id="prints-track">
+
+        <div class="print-card">
+          <div class="print-placeholder" style="background:linear-gradient(160deg,#0d2b4e,#060f1e);">
+            <div class="print-gfx"></div>
+            <div class="print-icon">📱</div>
+            <div class="print-views">2.4M</div>
+            <div class="print-label-sm">visualizações</div>
+          </div>
+          <div class="print-overlay">
+            <div class="print-tag">Reels</div>
+            <div class="print-desc">Post lifestyle — Befit App</div>
+          </div>
+        </div>
+
+        <div class="print-card">
+          <div class="print-placeholder" style="background:linear-gradient(160deg,#1a0d3e,#080520);">
+            <div class="print-gfx" style="background:radial-gradient(circle at 60% 40%,rgba(139,92,246,.3) 0%,transparent 55%);"></div>
+            <div class="print-icon">🎬</div>
+            <div class="print-views">1.8M</div>
+            <div class="print-label-sm">visualizações</div>
+          </div>
+          <div class="print-overlay">
+            <div class="print-tag">YouTube</div>
+            <div class="print-desc">Vlog semanal — Vini Viking</div>
+          </div>
+        </div>
+
+        <div class="print-card">
+          <div class="print-placeholder" style="background:linear-gradient(160deg,#0a2e1a,#050f0a);">
+            <div class="print-gfx" style="background:radial-gradient(circle at 40% 50%,rgba(5,150,105,.3) 0%,transparent 55%);"></div>
+            <div class="print-icon">⚡</div>
+            <div class="print-views">950K</div>
+            <div class="print-label-sm">visualizações</div>
+          </div>
+          <div class="print-overlay">
+            <div class="print-tag">TikTok</div>
+            <div class="print-desc">Treino viral — Ninja BB</div>
+          </div>
+        </div>
+
+        <div class="print-card">
+          <div class="print-placeholder" style="background:linear-gradient(160deg,#2a1000,#100600);">
+            <div class="print-gfx" style="background:radial-gradient(circle at 50% 35%,rgba(245,158,11,.25) 0%,transparent 55%);"></div>
+            <div class="print-icon">🎯</div>
+            <div class="print-views">580K</div>
+            <div class="print-label-sm">visualizações</div>
+          </div>
+          <div class="print-overlay">
+            <div class="print-tag">Ad</div>
+            <div class="print-desc">Campanha paga — Hoierr</div>
+          </div>
+        </div>
+
+        <div class="print-card">
+          <div class="print-placeholder" style="background:linear-gradient(160deg,#001a2c,#00090f);">
+            <div class="print-gfx" style="background:radial-gradient(circle at 35% 45%,rgba(6,182,212,.25) 0%,transparent 55%);"></div>
+            <div class="print-icon">🔥</div>
+            <div class="print-views">3.1M</div>
+            <div class="print-label-sm">visualizações</div>
+          </div>
+          <div class="print-overlay">
+            <div class="print-tag">Reels</div>
+            <div class="print-desc">Transformação — Cruz Pro</div>
+          </div>
+        </div>
+
+        <div class="print-card">
+          <div class="print-placeholder" style="background:linear-gradient(160deg,#1a001a,#0a000a);">
+            <div class="print-gfx" style="background:radial-gradient(circle at 55% 40%,rgba(190,24,93,.25) 0%,transparent 55%);"></div>
+            <div class="print-icon">💎</div>
+            <div class="print-views">420K</div>
+            <div class="print-label-sm">visualizações</div>
+          </div>
+          <div class="print-overlay">
+            <div class="print-tag">YouTube</div>
+            <div class="print-desc">Documentário — Pantera</div>
+          </div>
+        </div>
+
+        <div class="print-card">
+          <div class="print-placeholder" style="background:linear-gradient(160deg,#0d1b3e,#050a14);">
+            <div class="print-gfx"></div>
+            <div class="print-icon">📈</div>
+            <div class="print-views">1.2M</div>
+            <div class="print-label-sm">visualizações</div>
+          </div>
+          <div class="print-overlay">
+            <div class="print-tag">Reels</div>
+            <div class="print-desc">Série fitness — Bruno Viotti</div>
+          </div>
+        </div>
+
+        <div class="print-card">
+          <div class="print-placeholder" style="background:linear-gradient(160deg,#1a0830,#0a0418);">
+            <div class="print-gfx" style="background:radial-gradient(circle at 45% 40%,rgba(99,102,241,.3) 0%,transparent 55%);"></div>
+            <div class="print-icon">🎵</div>
+            <div class="print-views">700K</div>
+            <div class="print-label-sm">visualizações</div>
+          </div>
+          <div class="print-overlay">
+            <div class="print-tag">TikTok</div>
+            <div class="print-desc">Conteúdo viral — Rafaela S.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="prints-dots" id="prints-dots"></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contato">
+  <div class="section-label">Vamos trabalhar juntos</div>
+  <h2 class="section-title">Pronto pra elevar<br>seu conteúdo?</h2>
+  <p>Mande uma mensagem e receba uma proposta personalizada. Respondo em menos de 24 horas.</p>
+  <div class="cta-btns">
+    <a href="https://wa.me/55SEUNUMERO" class="btn-primary" target="_blank">💬 Falar no WhatsApp</a>
+    <a href="/cdn-cgi/l/email-protection#0173606760646d41646c60686d2f626e6c" class="btn-secondary">✉️ Enviar E-mail</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="nav-logo">Rafael<span style="color:var(--blue-light)">.</span></div>
+  <span>© 2026 Rafael — Editor de Vídeos Premium</span>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="#">Instagram</a>
+    <a href="#">YouTube</a>
+    <a href="#">LinkedIn</a>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// CURSOR
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let rx=0, ry=0;
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px';
+  rx += (e.clientX - rx) * .12; ry += (e.clientY - ry) * .12;
+  ring.style.left = rx+'px'; ring.style.top = ry+'px';
+});
+function animRing(){ rx += (parseFloat(cursor.style.left||0)-rx)*.12; ry += (parseFloat(cursor.style.top||0)-ry)*.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); }
+animRing();
+
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => { ring.style.width='52px'; ring.style.height='52px'; ring.style.borderColor='rgba(92,230,92,.7)'; cursor.style.opacity='0'; });
+  el.addEventListener('mouseleave', () => { ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(92,230,92,.5)'; cursor.style.opacity='1'; });
+});
+
+// CAROUSEL
+const track = document.getElementById('track');
+const cards = track.querySelectorAll('.carousel-card');
+const dotsContainer = document.getElementById('dots');
+let current = 0;
+const visible = () => window.innerWidth < 768 ? 1 : window.innerWidth < 1100 ? 2 : 3;
+
+function buildDots(){
+  dotsContainer.innerHTML = '';
+  const pages = Math.ceil(cards.length / visible());
+  for(let i=0;i<pages;i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===0?' active':'');
+    d.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(d);
+  }
+}
+
+function goTo(idx){
+  const v = visible(); const pages = Math.ceil(cards.length/v);
+  current = Math.max(0, Math.min(idx, pages-1));
+  const cardW = cards[0].getBoundingClientRect().width;
+  const gap = 24;
+  track.style.transform = `translateX(-${current*(cardW+gap)*v}px)`;
+  dotsContainer.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===current));
+}
+
+document.getElementById('prev').addEventListener('click', () => goTo(current-1));
+document.getElementById('next').addEventListener('click', () => goTo(current+1));
+
+buildDots();
+window.addEventListener('resize', () => { buildDots(); goTo(0); });
+
+// Touch swipe
+let startX = 0;
+track.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive:true});
+track.addEventListener('touchend', e => {
+  const diff = startX - e.changedTouches[0].clientX;
+  if(Math.abs(diff) > 50) goTo(current + (diff > 0 ? 1 : -1));
+});
+
+// VIEWS COUNTER
+const viewsEl = document.getElementById('views-counter');
+const viewsBar = document.getElementById('views-bar');
+let viewsAnimated = false;
+
+function animateCounter(el, target, duration) {
+  const start = performance.now();
+  const fmt = n => {
+    if (n >= 1e6) return (n/1e6).toFixed(n >= 10e6 ? 0 : 1) + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(0) + 'K';
+    return Math.floor(n).toString();
+  };
+  function step(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 4);
+    el.textContent = fmt(ease * target);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = fmt(target);
+  }
+  requestAnimationFrame(step);
+}
+
+const viewsObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !viewsAnimated) {
+      viewsAnimated = true;
+      animateCounter(viewsEl, 100000000, 2800);
+      setTimeout(() => { viewsBar.style.width = '100%'; }, 200);
+    }
+  });
+}, { threshold: .3 });
+if (viewsEl) viewsObs.observe(viewsEl);
+
+// PRINTS CAROUSEL
+const printsTrack = document.getElementById('prints-track');
+const printsDotsEl = document.getElementById('prints-dots');
+const printCards = printsTrack ? printsTrack.querySelectorAll('.print-card') : [];
+let printsCurrent = 0;
+const printsVisible = () => window.innerWidth < 600 ? 1 : window.innerWidth < 900 ? 2 : window.innerWidth < 1200 ? 3 : 4;
+
+function buildPrintsDots() {
+  if (!printsDotsEl) return;
+  printsDotsEl.innerHTML = '';
+  const pages = Math.ceil(printCards.length / printsVisible());
+  for (let i = 0; i < pages; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goPrints(i));
+    printsDotsEl.appendChild(d);
+  }
+}
+
+function goPrints(idx) {
+  const v = printsVisible();
+  const pages = Math.ceil(printCards.length / v);
+  printsCurrent = Math.max(0, Math.min(idx, pages - 1));
+  const cardW = printCards[0].getBoundingClientRect().width;
+  const gap = 19.2;
+  printsTrack.style.transform = `translateX(-${printsCurrent * (cardW + gap) * v}px)`;
+  printsDotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === printsCurrent));
+}
+
+const pp = document.getElementById('prints-prev');
+const pn = document.getElementById('prints-next');
+if (pp) pp.addEventListener('click', () => goPrints(printsCurrent - 1));
+if (pn) pn.addEventListener('click', () => goPrints(printsCurrent + 1));
+
+buildPrintsDots();
+window.addEventListener('resize', () => { buildPrintsDots(); goPrints(0); });
+
+// Touch for prints
+let printStartX = 0;
+if (printsTrack) {
+  printsTrack.addEventListener('touchstart', e => printStartX = e.touches[0].clientX, {passive:true});
+  printsTrack.addEventListener('touchend', e => {
+    const diff = printStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) goPrints(printsCurrent + (diff > 0 ? 1 : -1));
+  });
+}
+
+const reveals = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: .12 });
+reveals.forEach(r => obs.observe(r));
+</script>
+</body>
+</html>
