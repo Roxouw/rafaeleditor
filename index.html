@@ -1,1280 +1,754 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rafael | Editor de Vídeos Premium</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #050a14;
-    --bg2: #080f1e;
-    --blue: #008000;
-    --blue-light: #5CE65C;
-    --blue-glow: rgba(15,77,15,0.5);
-    --cyan: #CCFFCC;
-    --text: #f0f4ff;
-    --muted: #8ba0c0;
-    --card: rgba(255,255,255,0.04);
-    --border: rgba(255,255,255,0.07);
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    font-family: 'Instrument Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    overflow-x: hidden;
-    cursor: none;
-  }
-
-  /* ── CURSOR ── */
-  #cursor { position: fixed; width: 10px; height: 10px; background: var(--blue-light); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: transform .1s; }
-  #cursor-ring { position: fixed; width: 36px; height: 36px; border: 1.5px solid rgba(92,230,92,.5); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: left .12s ease, top .12s ease, width .2s, height .2s, opacity .2s; }
-  body:hover #cursor-ring { opacity:1; }
-
-  /* ── NOISE OVERLAY ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-  }
-
-  /* ── NAV ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1.2rem 5vw;
-    backdrop-filter: blur(20px);
-    background: rgba(5,10,20,0.7);
-    border-bottom: 1px solid var(--border);
-    transition: background .3s;
-  }
-  .nav-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800; font-size: 1.3rem;
-    letter-spacing: -.02em;
-  }
-  .nav-logo span { color: var(--blue-light); }
-  .nav-links { display: flex; gap: 2rem; list-style: none; }
-  .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; letter-spacing: .02em; }
-  .nav-links a:hover { color: var(--text); }
-  .nav-cta {
-    background: var(--blue); color: #fff;
-    padding: .55rem 1.4rem; border-radius: 99px; font-size: .88rem; font-weight: 600;
-    text-decoration: none; transition: background .2s, transform .2s, box-shadow .2s;
-    box-shadow: 0 0 24px var(--blue-glow);
-  }
-  .nav-cta:hover { background: var(--blue-light); transform: translateY(-1px); box-shadow: 0 0 36px var(--blue-glow); }
-
-  /* ── HERO ── */
-  .hero {
-    position: relative; min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 6rem 5vw 4rem;
-    overflow: hidden;
-  }
-  .hero-bg {
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,128,0,.18) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 30% at 20% 80%, rgba(6,182,212,.08) 0%, transparent 60%),
-                var(--bg);
-    z-index: 0;
-  }
-  .hero-orb {
-    position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none;
-    animation: orbFloat 8s ease-in-out infinite;
-  }
-  .orb1 { width: 500px; height: 500px; background: rgba(0,128,0,.15); top: -100px; left: 50%; transform: translateX(-50%); }
-  .orb2 { width: 300px; height: 300px; background: rgba(6,182,212,.07); bottom: 50px; right: 5%; animation-delay: -3s; }
-  @keyframes orbFloat { 0%,100%{ transform: translateY(0) scale(1); } 50%{ transform: translateY(-30px) scale(1.05); } }
-
-  .badge {
-    display: inline-flex; align-items: center; gap: .5rem;
-    background: rgba(0,128,0,.15); border: 1px solid rgba(92,230,92,.3);
-    border-radius: 99px; padding: .4rem 1.1rem; font-size: .8rem;
-    color: var(--blue-light); letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
-    margin-bottom: 2rem; position: relative; z-index: 1;
-    animation: fadeUp .8s ease both;
-  }
-  .badge::before { content: ''; width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{ opacity:1; box-shadow: 0 0 0 0 rgba(6,182,212,.4); } 50%{ opacity:.8; box-shadow: 0 0 0 6px rgba(6,182,212,0); } }
-
-  .hero h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(2.6rem, 6vw, 5.5rem);
-    font-weight: 800; line-height: 1.05; letter-spacing: -.03em;
-    position: relative; z-index: 1;
-    animation: fadeUp .9s .1s ease both;
-  }
-  .hero h1 em { font-style: normal; color: var(--blue-light); display: block; }
-  .hero p {
-    max-width: 560px; margin: 1.5rem auto 0;
-    color: var(--muted); font-size: 1.1rem; line-height: 1.7;
-    position: relative; z-index: 1;
-    animation: fadeUp .9s .2s ease both;
-  }
-  .hero-btns {
-    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
-    margin-top: 2.5rem; position: relative; z-index: 1;
-    animation: fadeUp .9s .3s ease both;
-  }
-  .btn-primary {
-    background: var(--blue); color: #fff;
-    padding: .85rem 2rem; border-radius: 99px; font-size: 1rem; font-weight: 600;
-    text-decoration: none; transition: all .2s;
-    box-shadow: 0 0 32px var(--blue-glow), 0 4px 20px rgba(0,0,0,.4);
-  }
-  .btn-primary:hover { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 0 48px rgba(92,230,92,.5); }
-  .btn-secondary {
-    border: 1px solid var(--border); color: var(--text);
-    padding: .85rem 2rem; border-radius: 99px; font-size: 1rem; font-weight: 500;
-    text-decoration: none; backdrop-filter: blur(10px); background: rgba(255,255,255,.04);
-    transition: all .2s;
-  }
-  .btn-secondary:hover { border-color: rgba(92,230,92,.4); background: rgba(0,128,0,.1); }
-
-  .hero-stats {
-    display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap;
-    margin-top: 4rem; position: relative; z-index: 1;
-    animation: fadeUp .9s .4s ease both;
-  }
-  .stat { text-align: center; }
-  .stat strong { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; display: block; }
-  .stat span { color: var(--muted); font-size: .85rem; }
-
-  @keyframes fadeUp { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: translateY(0); } }
-
-  /* ── MARQUEE ── */
-  .marquee-wrap { overflow: hidden; padding: 1.5rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: rgba(255,255,255,.02); }
-  .marquee-track { display: flex; gap: 3rem; width: max-content; animation: marquee 20s linear infinite; }
-  .marquee-item { color: var(--muted); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 1rem; }
-  .marquee-item::after { content: '✦'; color: var(--blue-light); font-size: .7rem; }
-  @keyframes marquee { to { transform: translateX(-50%); } }
-
-  /* ── SECTIONS SHARED ── */
-  section { padding: 6rem 5vw; position: relative; z-index: 1; }
-  .section-label { font-size: .75rem; letter-spacing: .15em; text-transform: uppercase; color: var(--blue-light); font-weight: 600; margin-bottom: 1rem; }
-  .section-title { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
-  .section-sub { color: var(--muted); font-size: 1.05rem; line-height: 1.7; max-width: 520px; margin-top: .8rem; }
-
-  /* ── CAROUSEL ── */
-  .carousel-section { background: var(--bg2); }
-  .carousel-header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 3rem; }
-  .carousel-nav { display: flex; gap: .75rem; }
-  .carousel-btn {
-    width: 46px; height: 46px; border-radius: 50%;
-    border: 1px solid var(--border); background: var(--card);
-    display: flex; align-items: center; justify-content: center;
-    cursor: none; transition: all .2s; color: var(--text);
-    font-size: 1.1rem;
-  }
-  .carousel-btn:hover { border-color: var(--blue); background: rgba(0,128,0,.15); color: var(--blue-light); }
-
-  .carousel-track-wrap { overflow: hidden; border-radius: 12px; }
-  .carousel-track {
-    display: flex; gap: 1.5rem;
-    transition: transform .5s cubic-bezier(.25,.46,.45,.94);
-    will-change: transform;
-  }
-  .carousel-card {
-    flex: 0 0 calc(33.333% - 1rem); min-width: 280px;
-    border-radius: 12px; overflow: hidden;
-    border: 1px solid var(--border);
-    background: var(--card);
-    position: relative; group: true;
-    transition: transform .3s, box-shadow .3s;
-  }
-  .carousel-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(92,230,92,.2); }
-
-  .card-thumb {
-    aspect-ratio: 16/10; position: relative; overflow: hidden;
-    background: linear-gradient(135deg, #0d1b3e, #0a2140);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .card-thumb .play-btn {
-    width: 52px; height: 52px; border-radius: 50%;
-    background: rgba(0,160,0,.9); border: 2px solid rgba(255,255,255,.2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; color: #fff; z-index: 2; position: relative;
-    box-shadow: 0 0 30px rgba(0,128,0,.6);
-    transition: transform .2s, box-shadow .2s;
-  }
-  .carousel-card:hover .play-btn { transform: scale(1.1); box-shadow: 0 0 50px rgba(92,230,92,.8); }
-
-  .card-thumb-label {
-    position: absolute; top: .75rem; right: .75rem;
-    background: rgba(0,0,0,.6); backdrop-filter: blur(8px);
-    border: 1px solid var(--border); border-radius: 6px;
-    padding: .3rem .7rem; font-size: .75rem; color: var(--muted); font-weight: 500;
-  }
-
-  /* Thumb illustrations */
-  .thumb-a { background: linear-gradient(135deg, #0d1b4e 0%, #091428 100%); }
-  .thumb-b { background: linear-gradient(135deg, #0a2c2c 0%, #051414 100%); }
-  .thumb-c { background: linear-gradient(135deg, #2a0e3a 0%, #100820 100%); }
-  .thumb-d { background: linear-gradient(135deg, #1a1000 0%, #0c0800 100%); }
-  .thumb-e { background: linear-gradient(135deg, #001a2c 0%, #000e1a 100%); }
-  .thumb-f { background: linear-gradient(135deg, #1a0010 0%, #0c000a 100%); }
-
-  .thumb-gfx {
-    position: absolute; inset: 0; opacity: .3;
-    background-image: radial-gradient(circle at 30% 40%, rgba(92,230,92,.5) 0%, transparent 50%),
-                      radial-gradient(circle at 70% 60%, rgba(6,182,212,.3) 0%, transparent 40%);
-  }
-  .thumb-lines {
-    position: absolute; inset: 0; overflow: hidden; opacity: .15;
-  }
-  .thumb-lines::before {
-    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
-    background: repeating-linear-gradient(transparent, transparent 3px, rgba(92,230,92,.3) 3px, rgba(92,230,92,.3) 4px);
-  }
-
-  .card-body { padding: 1.2rem 1.4rem 1.4rem; }
-  .card-tag { font-size: .72rem; color: var(--blue-light); letter-spacing: .1em; text-transform: uppercase; font-weight: 600; margin-bottom: .5rem; }
-  .card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; line-height: 1.3; }
-  .card-meta { display: flex; align-items: center; gap: 1rem; margin-top: .8rem; }
-  .card-metric { font-size: .8rem; color: var(--muted); }
-  .card-metric strong { color: var(--text); }
-
-  .carousel-dots { display: flex; justify-content: center; gap: .5rem; margin-top: 2rem; }
-  .dot { width: 6px; height: 6px; border-radius: 3px; background: var(--border); cursor: none; transition: all .3s; }
-  .dot.active { width: 22px; background: var(--blue-light); }
-
-  /* ── SERVICES ── */
-  .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
-  .service-card {
-    border: 1px solid var(--border); border-radius: 12px;
-    background: var(--card); padding: 2rem;
-    transition: all .3s; position: relative; overflow: hidden;
-  }
-  .service-card::before {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg, var(--blue-glow) 0%, transparent 60%);
-    opacity: 0; transition: opacity .3s;
-  }
-  .service-card:hover::before { opacity: 1; }
-  .service-card:hover { border-color: rgba(92,230,92,.3); transform: translateY(-2px); }
-  .service-icon { font-size: 1.8rem; margin-bottom: 1.2rem; }
-  .service-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.15rem; margin-bottom: .6rem; }
-  .service-card p { color: var(--muted); font-size: .9rem; line-height: 1.6; }
-  .service-arrow { margin-top: 1.5rem; color: var(--blue-light); font-size: .85rem; font-weight: 600; display: flex; align-items: center; gap: .4rem; }
-
-  /* ── PROCESS ── */
-  .process-section { background: var(--bg2); }
-  .process-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; margin-top: 3.5rem; position: relative; }
-  .process-steps::before {
-    content: ''; position: absolute; top: 28px; left: 10%; right: 10%; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--blue) 30%, var(--blue) 70%, transparent);
-    opacity: .3;
-  }
-  .step { text-align: center; padding: 0 1.5rem 2rem; position: relative; }
-  .step-num {
-    width: 56px; height: 56px; border-radius: 50%;
-    border: 1.5px solid rgba(92,230,92,.4);
-    background: rgba(0,128,0,.15);
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.4rem;
-    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--blue-light);
-    position: relative; z-index: 1;
-    box-shadow: 0 0 20px rgba(0,128,0,.2);
-  }
-  .step h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: .5rem; }
-  .step p { color: var(--muted); font-size: .87rem; line-height: 1.6; }
-
-  /* ── TESTIMONIALS ── */
-  .testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
-  .testi-card {
-    border: 1px solid var(--border); border-radius: 12px;
-    background: var(--card); padding: 1.8rem;
-    transition: border-color .3s;
-  }
-  .testi-card:hover { border-color: rgba(92,230,92,.25); }
-  .stars { color: #f59e0b; font-size: .85rem; letter-spacing: .1em; margin-bottom: 1rem; }
-  .testi-text { color: var(--muted); font-size: .93rem; line-height: 1.7; font-style: italic; margin-bottom: 1.4rem; }
-  .testi-author { display: flex; align-items: center; gap: .9rem; }
-  .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; flex-shrink: 0; }
-  .av1 { background: linear-gradient(135deg, #008000, #5CE65C); }
-  .av2 { background: linear-gradient(135deg, #0F4D0F, #5CE65C); }
-  .av3 { background: linear-gradient(135deg, #008000, #CCFFCC); }
-  .author-name { font-weight: 600; font-size: .9rem; }
-  .author-role { color: var(--muted); font-size: .78rem; }
-
-  /* ── CTA ── */
-  .cta-section {
-    text-align: center; padding: 7rem 5vw;
-    background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,128,0,.15) 0%, transparent 70%);
-    border-top: 1px solid var(--border);
-  }
-  .cta-section .section-title { font-size: clamp(2rem, 5vw, 4rem); margin-bottom: 1.2rem; }
-  .cta-section p { color: var(--muted); font-size: 1.05rem; max-width: 500px; margin: 0 auto 2.5rem; line-height: 1.7; }
-  .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-  .btn-white { background: #fff; color: #050a14; padding: .85rem 2rem; border-radius: 99px; font-size: 1rem; font-weight: 700; text-decoration: none; transition: all .2s; }
-  .btn-white:hover { background: var(--blue-light); color: #fff; transform: translateY(-2px); }
-
-  /* ── FOOTER ── */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 2.5rem 5vw; display: flex; align-items: center; justify-content: space-between; flex-wrap: gap;
-    color: var(--muted); font-size: .85rem;
-  }
-  footer .nav-logo { font-size: 1.1rem; }
-  footer a { color: var(--muted); text-decoration: none; transition: color .2s; }
-  footer a:hover { color: var(--blue-light); }
-
-  /* ── REVEAL ANIMATIONS ── */
-  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
-  .reveal.visible { opacity: 1; transform: none; }
-  .reveal-delay-1 { transition-delay: .1s; }
-  .reveal-delay-2 { transition-delay: .2s; }
-  .reveal-delay-3 { transition-delay: .3s; }
-  .reveal-delay-4 { transition-delay: .4s; }
-
-  /* ── CLIENTS SCROLL ── */
-  .clients-section { background: var(--bg2); overflow: hidden; }
-  .clients-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 3rem; }
-  .clients-col { position: relative; height: 620px; overflow: hidden; }
-  .clients-col::before, .clients-col::after {
-    content: ''; position: absolute; left: 0; right: 0; height: 100px; z-index: 2; pointer-events: none;
-  }
-  .clients-col::before { top: 0; background: linear-gradient(to bottom, var(--bg2), transparent); }
-  .clients-col::after  { bottom: 0; background: linear-gradient(to top, var(--bg2), transparent); }
-
-  .clients-inner {
-    display: flex; flex-direction: column; gap: 1rem;
-    animation: scrollUp var(--dur, 18s) linear infinite;
-  }
-  .clients-inner:hover { animation-play-state: paused; }
-  @keyframes scrollUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-
-  .client-card {
-    border-radius: 14px; overflow: hidden;
-    border: 1px solid var(--border);
-    background: var(--card); position: relative;
-    transition: border-color .3s, transform .3s;
-    flex-shrink: 0;
-  }
-  .client-card:hover { border-color: rgba(92,230,92,.4); transform: scale(1.02); }
-  .client-img {
-    width: 100%; aspect-ratio: 3/4; object-fit: cover;
-    display: block; background: linear-gradient(135deg, #0d1b3e, #091428);
-  }
-  .client-placeholder {
-    width: 100%; aspect-ratio: 3/4;
-    background: linear-gradient(135deg, #0d1b3e 0%, #091428 100%);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem;
-  }
-  .client-placeholder .cp-avatar {
-    width: 60px; height: 60px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem;
-    border: 2px solid rgba(92,230,92,.3);
-  }
-  .client-placeholder .cp-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .95rem; }
-  .client-placeholder .cp-handle { color: var(--muted); font-size: .78rem; }
-  .client-ig-btn {
-    position: absolute; top: .75rem; right: .75rem;
-    width: 36px; height: 36px; border-radius: 50%;
-    background: rgba(0,0,0,.5); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,.15);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; text-decoration: none;
-    opacity: 0; transition: opacity .2s, background .2s;
-  }
-  .client-card:hover .client-ig-btn { opacity: 1; }
-  .client-ig-btn:hover { background: var(--blue); border-color: var(--blue); }
-  .client-ig-btn svg { width: 16px; height: 16px; }
-
-  @media(max-width:900px){ .clients-cols { grid-template-columns: repeat(2,1fr); } .clients-col:last-child { display: none; } }
-  @media(max-width:580px){ .clients-cols { grid-template-columns: 1fr; } .clients-col:not(:first-child) { display: none; } }
-
-  /* ── VIEWS COUNTER ── */
-  .views-section {
-    text-align: center;
-    background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,128,0,.15) 0%, transparent 70%);
-    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  }
-  .views-number {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(4rem, 14vw, 10rem);
-    font-weight: 800; line-height: 1;
-    letter-spacing: -.04em;
-    background: linear-gradient(135deg, #fff 30%, var(--blue-light) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    margin: 1.5rem 0 .5rem;
-  }
-  .views-label { color: var(--muted); font-size: 1rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
-  .views-sub { color: var(--muted); font-size: .9rem; margin-top: 1rem; }
-  .views-bar-wrap { max-width: 480px; margin: 2rem auto 0; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .views-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue), var(--cyan)); border-radius: 2px; transition: width 2.5s cubic-bezier(.25,.46,.45,.94); }
-
-  /* ── PRINTS CAROUSEL ── */
-  .prints-section { background: var(--bg); }
-  .prints-track-wrap { overflow: hidden; margin-top: 2.5rem; }
-  .prints-track {
-    display: flex; gap: 1.2rem;
-    transition: transform .5s cubic-bezier(.25,.46,.45,.94);
-  }
-  .print-card {
-    flex: 0 0 calc(25% - 1rem); min-width: 220px;
-    border-radius: 14px; overflow: hidden;
-    border: 1px solid var(--border); background: var(--card);
-    transition: transform .3s, box-shadow .3s, border-color .3s;
-    position: relative;
-  }
-  .print-card:hover { transform: translateY(-4px) scale(1.01); border-color: rgba(92,230,92,.3); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
-  .print-img {
-    width: 100%; aspect-ratio: 9/16; object-fit: cover;
-    display: block;
-    background: linear-gradient(160deg, #0d1b3e, #091428);
-  }
-  .print-placeholder {
-    width: 100%; aspect-ratio: 9/16;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6rem;
-    position: relative; overflow: hidden;
-  }
-  .print-placeholder::before { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, #0d1b3e, #091428); }
-  .print-gfx { position: absolute; inset: 0; background: radial-gradient(circle at 40% 30%, rgba(92,230,92,.3) 0%, transparent 50%); }
-  .print-icon { font-size: 2.5rem; position: relative; z-index: 1; }
-  .print-views { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; position: relative; z-index: 1; }
-  .print-label-sm { color: var(--muted); font-size: .75rem; position: relative; z-index: 1; letter-spacing: .05em; }
-  .print-overlay {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    padding: 1rem; background: linear-gradient(to top, rgba(0,0,0,.8) 0%, transparent 100%);
-  }
-  .print-tag { font-size: .72rem; color: var(--blue-light); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-  .print-desc { font-size: .85rem; font-weight: 600; margin-top: .2rem; line-height: 1.3; }
-
-  .prints-nav { display: flex; gap: .75rem; }
-  .prints-dots { display: flex; justify-content: center; gap: .5rem; margin-top: 1.8rem; }
-
-  /* ── MOBILE ── */
-  @media(max-width:768px){
-    .nav-links { display: none; }
-    .carousel-card { flex: 0 0 85%; }
-    .process-steps::before { display: none; }
-    footer { flex-direction: column; gap: 1rem; text-align: center; }
-    .print-card { flex: 0 0 70%; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07110f">
+  <meta name="color-scheme" content="dark">
+  <title>Rafael Editor | Edicao com direcao e resultado</title>
+  <meta name="description" content="Portfolio de Rafael, editor de videos focado em retencao, conversao e posicionamento.">
+  <meta name="robots" content="index, follow">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Rafael Editor | Edicao com direcao e resultado">
+  <meta property="og:description" content="Portfolio de Rafael, editor de videos focado em retencao, conversao e posicionamento.">
+  <meta property="og:image" content="assets/images/og-cover.svg">
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Rafael Editor | Edicao com direcao e resultado">
+  <meta property="twitter:description" content="Portfolio de Rafael, editor de videos focado em retencao, conversao e posicionamento.">
+  <meta property="twitter:image" content="assets/images/og-cover.svg">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Rafael",
+      "jobTitle": "Video Editor",
+      "description": "Editor de videos focado em retencao, conversao e posicionamento para criadores e marcas.",
+      "url": "./"
+    }
+  </script>
 </head>
 <body>
-
-<div id="cursor"></div>
-<div id="cursor-ring"></div>
-
-<!-- NAV -->
-<nav>
-  <div class="nav-logo">Rafael<span>.</span></div>
-  <ul class="nav-links">
-    <li><a href="#portfolio">Portfólio</a></li>
-    <li><a href="#servicos">Serviços</a></li>
-    <li><a href="#processo">Processo</a></li>
-    <li><a href="#depoimentos">Clientes</a></li>
-  </ul>
-  <a href="#contato" class="nav-cta">Solicitar Orçamento</a>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-orb orb1"></div>
-  <div class="hero-orb orb2"></div>
-
-  <div class="badge">🎬 Vagas disponíveis — Janeiro 2026</div>
-
-  <h1>
-    Edição que<br>
-    <em>Retém, Converte</em>
-    e Posiciona
-  </h1>
-  <p>Não é só cortar vídeo. É construir narrativa, prender atenção e elevar a percepção do seu conteúdo — do primeiro ao último segundo.</p>
-
-  <div class="hero-btns">
-    <a href="#contato" class="btn-primary">Quero meu Projeto →</a>
-    <a href="#portfolio" class="btn-secondary">Ver Portfólio</a>
-  </div>
-
-  <div class="hero-stats">
-    <div class="stat">
-      <strong>50+</strong>
-      <span>Projetos entregues</span>
+  <a href="#conteudo" class="skip-link">Pular para o conteudo</a>
+  <nav class="site-nav" id="site-nav" aria-label="Navegacao principal">
+    <div class="shell">
+      <a href="#top" class="brand" aria-label="Rafael Editor">
+        <span>Rafael<span class="brand-mark">.</span></span>
+        <span class="brand-note">Video Editor</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#portfolio">Portfolio</a></li>
+        <li><a href="#servicos">Servicos</a></li>
+        <li><a href="#processo">Processo</a></li>
+        <li><a href="#depoimentos">Resultados</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="#contato" class="pill-btn">Agendar briefing</a>
+        <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-label="Abrir menu"><span></span></button>
+      </div>
     </div>
-    <div class="stat">
-      <strong>98%</strong>
-      <span>Clientes satisfeitos</span>
-    </div>
-    <div class="stat">
-      <strong>72h</strong>
-      <span>Prazo de entrega</span>
-    </div>
-  </div>
-</section>
+  </nav>
 
-<!-- MARQUEE -->
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <span class="marquee-item">Reels Virais</span>
-    <span class="marquee-item">YouTube Premium</span>
-    <span class="marquee-item">Storytelling</span>
-    <span class="marquee-item">Motion Graphics</span>
-    <span class="marquee-item">Color Grading</span>
-    <span class="marquee-item">Podcasts</span>
-    <span class="marquee-item">Ads de Alta Conversão</span>
-    <span class="marquee-item">Documentários</span>
-    <!-- duplicate for seamless loop -->
-    <span class="marquee-item">Reels Virais</span>
-    <span class="marquee-item">YouTube Premium</span>
-    <span class="marquee-item">Storytelling</span>
-    <span class="marquee-item">Motion Graphics</span>
-    <span class="marquee-item">Color Grading</span>
-    <span class="marquee-item">Podcasts</span>
-    <span class="marquee-item">Ads de Alta Conversão</span>
-    <span class="marquee-item">Documentários</span>
-  </div>
-</div>
-
-<!-- CAROUSEL PORTFOLIO -->
-<section class="carousel-section" id="portfolio">
-  <div class="carousel-header">
-    <div>
-      <div class="section-label reveal">Portfólio</div>
-      <h2 class="section-title reveal reveal-delay-1">Projetos que<br>fazem diferença</h2>
-    </div>
-    <div class="carousel-nav">
-      <button class="carousel-btn" id="prev" aria-label="Anterior">&#8592;</button>
-      <button class="carousel-btn" id="next" aria-label="Próximo">&#8594;</button>
-    </div>
-  </div>
-
-  <div class="carousel-track-wrap">
-    <div class="carousel-track" id="track">
-
-      <div class="carousel-card">
-        <div class="card-thumb thumb-a">
-          <div class="thumb-gfx"></div>
-          <div class="thumb-lines"></div>
-          <div class="play-btn">▶</div>
-          <span class="card-thumb-label">Reels · 60s</span>
+  <main id="conteudo">
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Agenda aberta para abril</div>
+          <h1>Edicao que faz <span>o conteudo respirar</span> e vender melhor</h1>
+          <p>Eu transformo material bruto em videos com ritmo, direcao e leitura clara. O foco nao e so deixar bonito. E prender atencao, sustentar narrativa e aumentar o valor percebido da sua marca.</p>
+          <div class="hero-actions">
+            <a href="#contato" class="pill-btn">Quero um projeto forte</a>
+            <a href="#portfolio" class="ghost-btn">Ver trabalhos</a>
+          </div>
+          <div class="hero-proof">
+            <span><strong>50+</strong> projetos entregues</span>
+            <span><strong>2,4M+</strong> views em casos selecionados</span>
+            <span><strong>72h</strong> para primeiras entregas</span>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="card-tag">Criador de Conteúdo</div>
-          <div class="card-title">Série de Reels para Marca Pessoal — Lifestyle Premium</div>
-          <div class="card-meta">
-            <span class="card-metric"><strong>+2.4M</strong> visualizações</span>
-            <span class="card-metric"><strong>+18k</strong> seguidores</span>
+
+        <div class="hero-stage" aria-hidden="true">
+          <div class="stage-chip">Projeto em andamento <strong>Reel de lancamento</strong></div>
+          <div class="stage-visual">
+            <div class="reel-screen">
+              <div class="reel-meta">
+                <div>
+                  <div class="label">Frame selecionado</div>
+                  <h2>Hook, clareza e textura visual.</h2>
+                </div>
+                <div class="play-core"></div>
+              </div>
+              <div class="reel-wave"></div>
+            </div>
+            <div class="stage-stack">
+              <div class="glass-panel metric-panel">
+                <div class="section-kicker">Retencao media</div>
+                <div class="metric-number">72%</div>
+                <p>Cortes mais precisos, respiro na fala e pacing pensado para segurar a audiencia sem cansar.</p>
+                <ul class="metric-list">
+                  <li>Hook nos 3 primeiros segundos</li>
+                  <li>Legenda limpa e leitura instantanea</li>
+                  <li>Ritmo ajustado por objetivo</li>
+                </ul>
+              </div>
+              <div class="glass-panel shot-grid shot-panel">
+                <div class="shot">Color grade</div>
+                <div class="shot">Legenda viva</div>
+                <div class="shot">Narrativa</div>
+                <div class="shot">Conversao</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="carousel-card">
-        <div class="card-thumb thumb-b">
-          <div class="thumb-gfx"></div>
-          <div class="thumb-lines"></div>
-          <div class="play-btn">▶</div>
-          <span class="card-thumb-label">YouTube · 22min</span>
+    <div class="proof-strip">
+      <div class="shell proof-grid reveal">
+        <div class="proof-item">
+          <div class="proof-label">Entrega</div>
+          <div class="proof-value">24h</div>
+          <p class="proof-sub">para retorno do briefing e direcionamento criativo.</p>
         </div>
-        <div class="card-body">
-          <div class="card-tag">Educação Online</div>
-          <div class="card-title">Documentário Educacional — Metodologia de Alta Performance</div>
-          <div class="card-meta">
-            <span class="card-metric"><strong>580k</strong> views</span>
-            <span class="card-metric"><strong>72%</strong> retenção</span>
-          </div>
+        <div class="proof-item">
+          <div class="proof-label">Formato</div>
+          <div class="proof-value">Short + Long</div>
+          <p class="proof-sub">Reels, YouTube, VSL, podcasts e cortes de campanha.</p>
         </div>
-      </div>
-
-      <div class="carousel-card">
-        <div class="card-thumb thumb-c">
-          <div class="thumb-gfx"></div>
-          <div class="thumb-lines"></div>
-          <div class="play-btn">▶</div>
-          <span class="card-thumb-label">Ad · 30s</span>
+        <div class="proof-item">
+          <div class="proof-label">Metodo</div>
+          <div class="proof-value">Clareza</div>
+          <p class="proof-sub">Cada frame serve o entendimento, o ritmo e a mensagem.</p>
         </div>
-        <div class="card-body">
-          <div class="card-tag">E-commerce</div>
-          <div class="card-title">Campanha de Lançamento — Produto Digital High-Ticket</div>
-          <div class="card-meta">
-            <span class="card-metric"><strong>4.2x</strong> ROAS</span>
-            <span class="card-metric"><strong>R$380k</strong> faturado</span>
-          </div>
+        <div class="proof-item">
+          <div class="proof-label">Parceria</div>
+          <div class="proof-value">Mensal</div>
+          <p class="proof-sub">Fluxo continuo para criadores e marcas que publicam toda semana.</p>
         </div>
-      </div>
-
-      <div class="carousel-card">
-        <div class="card-thumb thumb-d">
-          <div class="thumb-gfx"></div>
-          <div class="thumb-lines"></div>
-          <div class="play-btn">▶</div>
-          <span class="card-thumb-label">Podcast · 45min</span>
-        </div>
-        <div class="card-body">
-          <div class="card-tag">Podcast</div>
-          <div class="card-title">Edição Completa de Episódios — Canal Business com Clipes</div>
-          <div class="card-meta">
-            <span class="card-metric"><strong>120k</strong> ouvintes</span>
-            <span class="card-metric"><strong>#3</strong> no Spotify</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="carousel-card">
-        <div class="card-thumb thumb-e">
-          <div class="thumb-gfx"></div>
-          <div class="thumb-lines"></div>
-          <div class="play-btn">▶</div>
-          <span class="card-thumb-label">VSL · 8min</span>
-        </div>
-        <div class="card-body">
-          <div class="card-tag">Lançamento</div>
-          <div class="card-title">Vídeo de Vendas — Infoproduto com Roteiro Persuasivo</div>
-          <div class="card-meta">
-            <span class="card-metric"><strong>12%</strong> conv. rate</span>
-            <span class="card-metric"><strong>R$92k</strong> em 7 dias</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="carousel-card">
-        <div class="card-thumb thumb-f">
-          <div class="thumb-gfx"></div>
-          <div class="thumb-lines"></div>
-          <div class="play-btn">▶</div>
-          <span class="card-thumb-label">Série · 6 eps</span>
-        </div>
-        <div class="card-body">
-          <div class="card-tag">Marca Pessoal</div>
-          <div class="card-title">Minisérie de Conteúdo — Posicionamento de Especialista</div>
-          <div class="card-meta">
-            <span class="card-metric"><strong>+41k</strong> inscritos</span>
-            <span class="card-metric"><strong>8.4%</strong> engajamento</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="carousel-dots" id="dots"></div>
-</section>
-
-<!-- SERVICES -->
-<section id="servicos">
-  <div style="max-width:1200px;margin:0 auto;">
-    <div class="section-label reveal">Serviços</div>
-    <h2 class="section-title reveal reveal-delay-1">O que eu entrego<br>pra você</h2>
-    <p class="section-sub reveal reveal-delay-2">Cada projeto é único. Cada entrega é estratégica.</p>
-
-    <div class="services-grid">
-      <div class="service-card reveal reveal-delay-1">
-        <div class="service-icon">🎬</div>
-        <h3>Edição Premium para YouTube</h3>
-        <p>Edição completa com motion, color grade, trilha e SEO de thumbnail. Conteúdo que retém do início ao fim.</p>
-        <div class="service-arrow">Ver mais →</div>
-      </div>
-      <div class="service-card reveal reveal-delay-2">
-        <div class="service-icon">⚡</div>
-        <h3>Reels & TikTok Virais</h3>
-        <p>Cortes rápidos, hook magnético, legendas animadas e estética que para o scroll. Feito pra viralizar.</p>
-        <div class="service-arrow">Ver mais →</div>
-      </div>
-      <div class="service-card reveal reveal-delay-3">
-        <div class="service-icon">🎯</div>
-        <h3>Vídeos de Vendas (VSL)</h3>
-        <p>Narrativa persuasiva, pacing estratégico e edição que conduz a decisão de compra. ROAS que paga o investimento.</p>
-        <div class="service-arrow">Ver mais →</div>
-      </div>
-      <div class="service-card reveal reveal-delay-4">
-        <div class="service-icon">🎙️</div>
-        <h3>Podcast Completo</h3>
-        <p>Edição de áudio, vídeo e clipes para redes. Um episódio vira 10 conteúdos estratégicos.</p>
-        <div class="service-arrow">Ver mais →</div>
-      </div>
-      <div class="service-card reveal reveal-delay-1">
-        <div class="service-icon">✨</div>
-        <h3>Motion Graphics</h3>
-        <p>Lower thirds, intros, gráficos animados e visualizações de dados. Seu vídeo num outro nível.</p>
-        <div class="service-arrow">Ver mais →</div>
-      </div>
-      <div class="service-card reveal reveal-delay-2">
-        <div class="service-icon">🚀</div>
-        <h3>Pacote Mensal</h3>
-        <p>Parceria contínua com prioridade de atendimento, revisões ilimitadas e preço especial de cliente fixo.</p>
-        <div class="service-arrow">Ver mais →</div>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- PROCESS -->
-<section class="process-section" id="processo">
-  <div style="max-width:1200px;margin:0 auto;">
-    <div class="section-label reveal" style="text-align:center;">Processo</div>
-    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;">Como funciona</h2>
-    <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;">Simples, rápido e sem dor de cabeça</p>
+    <section class="clients-section" id="clientes">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div class="section-kicker">Clientes e referencias</div>
+          <h2 class="section-title">Perfis grandes que ajudam a mostrar o nivel do jogo.</h2>
+          <p class="section-copy">Uma parte do meu repertorio conversa com audiencias enormes no fitness e na suplementacao. Isso reforca contexto, escala e percepcao de autoridade para quem chega no portfolio.</p>
+        </div>
 
-    <div class="process-steps">
-      <div class="step reveal reveal-delay-1">
-        <div class="step-num">01</div>
-        <h4>Briefing</h4>
-        <p>Você me conta o objetivo, público e referências. Em até 24h tenho o plano pronto.</p>
+        <div class="clients-carousel reveal">
+          <div class="clients-track">
+            <article class="client-card">
+              <div class="client-top">
+                <div class="client-brand">
+                  <div class="client-avatar">
+                    <img src="https://unavatar.io/instagram/fabiogigapro" alt="Foto de perfil de Fabio Giga Pro" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                  </div>
+                  <div>
+                    <div class="client-label">Instagram</div>
+                    <h3>Fabio Giga Pro</h3>
+                  </div>
+                </div>
+                <div class="client-meta">
+                  <span class="client-scale">Large reach</span>
+                  <span class="client-handle">@fabiogigapro</span>
+                </div>
+              </div>
+              <div class="client-impact">
+                <div class="client-metric">3.7M</div>
+                <span class="client-metric-note">seguidores</span>
+              </div>
+              <div class="client-tags">
+                <span class="client-tag">Fitness</span>
+                <span class="client-tag">Autoridade</span>
+              </div>
+              <p class="client-copy">Presenca forte no nicho fitness com audiencia consolidada e imagem de autoridade muito clara.</p>
+              <a href="https://www.instagram.com/fabiogigapro/" target="_blank" rel="noopener noreferrer" class="ghost-btn client-link">Ver perfil</a>
+            </article>
+
+            <article class="client-card">
+              <div class="client-top">
+                <div class="client-brand">
+                  <div class="client-avatar">
+                    <img src="https://unavatar.io/instagram/juliobalestrinoficial" alt="Foto de perfil de Julio Balestrin" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                  </div>
+                  <div>
+                    <div class="client-label">Instagram</div>
+                    <h3>Julio Balestrin</h3>
+                  </div>
+                </div>
+                <div class="client-meta">
+                  <span class="client-scale">Massive reach</span>
+                  <span class="client-handle">@juliobalestrinoficial</span>
+                </div>
+              </div>
+              <div class="client-impact">
+                <div class="client-metric">6.1M</div>
+                <span class="client-metric-note">seguidores</span>
+              </div>
+              <div class="client-tags">
+                <span class="client-tag">Bodybuilding</span>
+                <span class="client-tag">Brasil</span>
+              </div>
+              <p class="client-copy">Alcance massivo e posicionamento muito forte no Brasil, com reconhecimento instantaneo no segmento.</p>
+              <a href="https://www.instagram.com/juliobalestrinoficial/" target="_blank" rel="noopener noreferrer" class="ghost-btn client-link">Ver perfil</a>
+            </article>
+
+            <article class="client-card">
+              <div class="client-top">
+                <div class="client-brand">
+                  <div class="client-avatar">
+                    <img src="https://unavatar.io/instagram/renato_cariani" alt="Foto de perfil de Renato Cariani" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                  </div>
+                  <div>
+                    <div class="client-label">Instagram</div>
+                    <h3>Renato Cariani</h3>
+                  </div>
+                </div>
+                <div class="client-meta">
+                  <span class="client-scale">Category leader</span>
+                  <span class="client-handle">@renato_cariani</span>
+                </div>
+              </div>
+              <div class="client-impact">
+                <div class="client-metric">11.1M</div>
+                <span class="client-metric-note">seguidores</span>
+              </div>
+              <div class="client-tags">
+                <span class="client-tag">Escala</span>
+                <span class="client-tag">Fitness</span>
+              </div>
+              <p class="client-copy">Uma das maiores audiencias do fitness nacional, com escala e impacto que comunicam relevancia imediata.</p>
+              <a href="https://www.instagram.com/renato_cariani/" target="_blank" rel="noopener noreferrer" class="ghost-btn client-link">Ver perfil</a>
+            </article>
+
+            <article class="client-card">
+              <div class="client-top">
+                <div class="client-brand">
+                  <div class="client-avatar">
+                    <img src="https://unavatar.io/instagram/growthsupplements" alt="Foto de perfil da Growth Supplements" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                  </div>
+                  <div>
+                    <div class="client-label">Instagram</div>
+                    <h3>Growth Supplements</h3>
+                  </div>
+                </div>
+                <div class="client-meta">
+                  <span class="client-scale">Brand scale</span>
+                  <span class="client-handle">@growthsupplements</span>
+                </div>
+              </div>
+              <div class="client-impact">
+                <div class="client-metric">6.1M</div>
+                <span class="client-metric-note">seguidores</span>
+              </div>
+              <div class="client-tags">
+                <span class="client-tag">Marca</span>
+                <span class="client-tag">Suplementacao</span>
+              </div>
+              <p class="client-copy">Marca com escala real e reconhecimento imediato, excelente para reforcar credibilidade comercial no portfolio.</p>
+              <a href="https://www.instagram.com/growthsupplements/" target="_blank" rel="noopener noreferrer" class="ghost-btn client-link">Ver perfil</a>
+            </article>
+
+            <article class="client-card" aria-hidden="true">
+              <div class="client-top">
+                <div class="client-brand">
+                  <div class="client-avatar">
+                    <img src="https://unavatar.io/instagram/fabiogigapro" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                  </div>
+                  <div>
+                    <div class="client-label">Instagram</div>
+                    <h3>Fabio Giga Pro</h3>
+                  </div>
+                </div>
+                <div class="client-meta">
+                  <span class="client-scale">Large reach</span>
+                  <span class="client-handle">@fabiogigapro</span>
+                </div>
+              </div>
+              <div class="client-impact">
+                <div class="client-metric">3.7M</div>
+                <span class="client-metric-note">seguidores</span>
+              </div>
+              <div class="client-tags">
+                <span class="client-tag">Fitness</span>
+                <span class="client-tag">Autoridade</span>
+              </div>
+              <p class="client-copy">Presenca forte no nicho fitness com audiencia consolidada e imagem de autoridade muito clara.</p>
+              <span class="ghost-btn client-link">Ver perfil</span>
+            </article>
+
+            <article class="client-card" aria-hidden="true">
+              <div class="client-top">
+                <div class="client-brand">
+                  <div class="client-avatar">
+                    <img src="https://unavatar.io/instagram/juliobalestrinoficial" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                  </div>
+                  <div>
+                    <div class="client-label">Instagram</div>
+                    <h3>Julio Balestrin</h3>
+                  </div>
+                </div>
+                <div class="client-meta">
+                  <span class="client-scale">Massive reach</span>
+                  <span class="client-handle">@juliobalestrinoficial</span>
+                </div>
+              </div>
+              <div class="client-impact">
+                <div class="client-metric">6.1M</div>
+                <span class="client-metric-note">seguidores</span>
+              </div>
+              <div class="client-tags">
+                <span class="client-tag">Bodybuilding</span>
+                <span class="client-tag">Brasil</span>
+              </div>
+              <p class="client-copy">Alcance massivo e posicionamento muito forte no Brasil, com reconhecimento instantaneo no segmento.</p>
+              <span class="ghost-btn client-link">Ver perfil</span>
+            </article>
+
+            <article class="client-card" aria-hidden="true">
+              <div class="client-top">
+                <div class="client-brand">
+                  <div class="client-avatar">
+                    <img src="https://unavatar.io/instagram/renato_cariani" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                    <span>RC</span>
+                  </div>
+                  <div>
+                    <div class="client-label">Instagram</div>
+                    <h3>Renato Cariani</h3>
+                  </div>
+                </div>
+                <div class="client-meta">
+                  <span class="client-scale">Category leader</span>
+                  <span class="client-handle">@renato_cariani</span>
+                </div>
+              </div>
+              <div class="client-impact">
+                <div class="client-metric">11.1M</div>
+                <span class="client-metric-note">seguidores</span>
+              </div>
+              <div class="client-tags">
+                <span class="client-tag">Escala</span>
+                <span class="client-tag">Fitness</span>
+              </div>
+              <p class="client-copy">Uma das maiores audiencias do fitness nacional, com escala e impacto que comunicam relevancia imediata.</p>
+              <span class="ghost-btn client-link">Ver perfil</span>
+            </article>
+
+            <article class="client-card" aria-hidden="true">
+              <div class="client-top">
+                <div class="client-brand">
+                  <div class="client-avatar">
+                    <img src="https://unavatar.io/instagram/growthsupplements" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                  </div>
+                  <div>
+                    <div class="client-label">Instagram</div>
+                    <h3>Growth Supplements</h3>
+                  </div>
+                </div>
+                <div class="client-meta">
+                  <span class="client-scale">Brand scale</span>
+                  <span class="client-handle">@growthsupplements</span>
+                </div>
+              </div>
+              <div class="client-impact">
+                <div class="client-metric">6.1M</div>
+                <span class="client-metric-note">seguidores</span>
+              </div>
+              <div class="client-tags">
+                <span class="client-tag">Marca</span>
+                <span class="client-tag">Suplementacao</span>
+              </div>
+              <p class="client-copy">Marca com escala real e reconhecimento imediato, excelente para reforcar credibilidade comercial no portfolio.</p>
+              <span class="ghost-btn client-link">Ver perfil</span>
+            </article>
+          </div>
+        </div>
       </div>
-      <div class="step reveal reveal-delay-2">
-        <div class="step-num">02</div>
-        <h4>Envio do Material</h4>
-        <p>Você manda o raw via Drive ou WeTransfer. Aceito qualquer formato.</p>
+    </section>
+
+    <section id="portfolio">
+      <div class="shell works-wrap">
+        <div class="works-note reveal">
+          <div class="section-head">
+            <div class="section-kicker">Portfolio</div>
+            <h2 class="section-title">Projetos pensados para performar sem parecer genericos.</h2>
+            <p class="section-copy">O trabalho mistura acabamento premium com decisao editorial. O objetivo muda de projeto para projeto, mas a logica e sempre a mesma: cortar ruido, valorizar a mensagem e elevar percepcao.</p>
+          </div>
+          <ul class="mini-list">
+            <li><strong>Hook</strong><span>Aberturas que param o scroll sem parecer clickbait.</span></li>
+            <li><strong>Ritmo</strong><span>Edicao guiada por narrativa, respiracao e intencao.</span></li>
+            <li><strong>Marca</strong><span>Visual coerente com o posicionamento de quem aparece.</span></li>
+          </ul>
+        </div>
+        <div class="work-rail">
+          <article class="work-card reveal">
+            <div class="work-visual reel">
+              <div class="work-badge">Reels de autoridade</div>
+              <div class="work-bar"></div>
+            </div>
+            <div class="work-body">
+              <div class="work-head">
+                <h3 class="work-title">Serie vertical para marca pessoal fitness</h3>
+                <a href="#contato" class="text-btn">Quero algo assim</a>
+              </div>
+              <p class="work-copy">Direcao para conteudo de performance com legenda forte, cortes secos e visual mais premium para diferenciar o perfil no feed.</p>
+              <div class="metric-row">
+                <span class="metric-chip"><strong>2,4M+</strong> views</span>
+                <span class="metric-chip"><strong>18k</strong> novos seguidores</span>
+                <span class="metric-chip"><strong>60s</strong> media por episodio</span>
+              </div>
+            </div>
+          </article>
+          <article class="work-card reveal">
+            <div class="work-visual youtube">
+              <div class="work-badge">YouTube premium</div>
+              <div class="work-bar"></div>
+            </div>
+            <div class="work-body">
+              <div class="work-head">
+                <h3 class="work-title">Documentario educacional com narrativa e retencao</h3>
+                <a href="#contato" class="text-btn">Conversar sobre projeto</a>
+              </div>
+              <p class="work-copy">Montagem mais limpa, respiro nos blocos e elementos visuais para sustentar entendimento sem poluir a tela.</p>
+              <div class="metric-row">
+                <span class="metric-chip"><strong>580k</strong> views</span>
+                <span class="metric-chip"><strong>72%</strong> retencao</span>
+                <span class="metric-chip"><strong>22 min</strong> de duracao</span>
+              </div>
+            </div>
+          </article>
+          <article class="work-card reveal">
+            <div class="work-visual vsl">
+              <div class="work-badge">VSL e lancamentos</div>
+              <div class="work-bar"></div>
+            </div>
+            <div class="work-body">
+              <div class="work-head">
+                <h3 class="work-title">Peca de conversao para produto digital high ticket</h3>
+                <a href="#contato" class="text-btn">Solicitar briefing</a>
+              </div>
+              <p class="work-copy">Edicao estruturada para venda: ritmo, repeticao visual controlada e reforco dos momentos de decisao.</p>
+              <div class="metric-row">
+                <span class="metric-chip"><strong>4,2x</strong> ROAS</span>
+                <span class="metric-chip"><strong>R$380k</strong> faturados</span>
+                <span class="metric-chip"><strong>12%</strong> taxa de conversao</span>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
-      <div class="step reveal reveal-delay-3">
-        <div class="step-num">03</div>
-        <h4>Edição Estratégica</h4>
-        <p>Faço a edição com foco em retenção, narrativa e conversão — não só corte.</p>
+    </section>
+
+    <section class="reels-section" id="reels">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div class="section-kicker">Reels em destaque</div>
+          <h2 class="section-title">Os reels com maior impacto em visualizacao.</h2>
+          <p class="section-copy">Agora com links reais e metricas publicas atuais dos videos. Uma leitura rapida para mostrar alcance, engajamento e repertorio de cortes curtos.</p>
+        </div>
+
+        <div class="reels-carousel reveal">
+          <div class="reels-track">
+            <article class="reel-card">
+              <div class="reel-card-visual reel-visual-1">
+                <img src="assets/images/reels/strongcast-bitelo.svg" alt="Preview local do reel do Bitelo" class="reel-card-thumb" loading="lazy">
+                <a href="https://www.tiktok.com/@strongcast/video/7446056633525980421?lang=pt-BR" target="_blank" rel="noopener noreferrer" class="reel-visual-action" aria-label="Abrir video do Bitelo no TikTok"></a>
+                <div class="reel-play" aria-hidden="true"></div>
+                <div class="reel-card-badge">TikTok</div>
+                <div class="reel-card-views">15.2M</div>
+                <div class="reel-card-label">views atuais</div>
+              </div>
+              <div class="reel-card-body">
+                <h3>Esqueceram de avisar pro Bitelo que a caneca era pesada</h3>
+                <p>StrongCast feat. Bitelo com alcance explosivo e alto volume de curtidas.</p>
+                <div class="reel-metrics">
+                  <span class="metric-chip"><strong>1.5M</strong> likes</span>
+                  <span class="metric-chip"><strong>TikTok</strong> short-form</span>
+                </div>
+                <a href="https://www.tiktok.com/@strongcast/video/7446056633525980421?lang=pt-BR" target="_blank" rel="noopener noreferrer" class="ghost-btn reel-link">Abrir video</a>
+              </div>
+            </article>
+
+            <article class="reel-card">
+              <div class="reel-card-visual reel-visual-2">
+                <img src="assets/images/reels/strongcast-emerson.svg" alt="Preview local do reel com Emerson Ceara" class="reel-card-thumb" loading="lazy">
+                <a href="https://www.tiktok.com/@strongcast/video/7596089167340227841?lang=pt-BR" target="_blank" rel="noopener noreferrer" class="reel-visual-action" aria-label="Abrir video com Emerson Ceara no TikTok"></a>
+                <div class="reel-play" aria-hidden="true"></div>
+                <div class="reel-card-badge">TikTok</div>
+                <div class="reel-card-views">14.6M</div>
+                <div class="reel-card-label">views atuais</div>
+              </div>
+              <div class="reel-card-body">
+                <h3>Hoje eu entendi que a vida nao e justa</h3>
+                <p>Recorte de StrongCast com Emerson Ceara e forte performance de alcance.</p>
+                <div class="reel-metrics">
+                  <span class="metric-chip"><strong>714K</strong> likes</span>
+                  <span class="metric-chip"><strong>TikTok</strong> viral cut</span>
+                </div>
+                <a href="https://www.tiktok.com/@strongcast/video/7596089167340227841?lang=pt-BR" target="_blank" rel="noopener noreferrer" class="ghost-btn reel-link">Abrir video</a>
+              </div>
+            </article>
+
+            <article class="reel-card">
+              <div class="reel-card-visual reel-visual-3">
+                <img src="assets/images/reels/short-igor-5km.svg" alt="Preview local do short do Igor nos 5km" class="reel-card-thumb" loading="lazy">
+                <button type="button" class="reel-visual-action reel-modal-trigger" data-video-type="youtube" data-video-id="M-cS3-j3aKg" data-video-title="O Igor tentou fazer 5KM e olha o que aconteceu" aria-label="Abrir preview do short do Igor"></button>
+                <div class="reel-play" aria-hidden="true"></div>
+                <div class="reel-card-badge">YouTube Shorts</div>
+                <div class="reel-card-views">11.05M</div>
+                <div class="reel-card-label">views atuais</div>
+              </div>
+              <div class="reel-card-body">
+                <h3>O Igor tentou fazer 5KM e olha o que aconteceu</h3>
+                <p>Short com memorabilidade alta e leitura instantanea no formato vertical.</p>
+                <div class="reel-metrics">
+                  <span class="metric-chip"><strong>524K</strong> likes</span>
+                  <span class="metric-chip"><strong>YouTube</strong> Shorts</span>
+                </div>
+                <button type="button" class="ghost-btn reel-link reel-modal-trigger" data-video-type="youtube" data-video-id="M-cS3-j3aKg" data-video-title="O Igor tentou fazer 5KM e olha o que aconteceu">Assistir preview</button>
+              </div>
+            </article>
+
+            <article class="reel-card">
+              <div class="reel-card-visual reel-visual-4">
+                <img src="assets/images/reels/short-voz-infancia.svg" alt="Preview local do short Essa voz fez parte da sua infancia" class="reel-card-thumb" loading="lazy">
+                <button type="button" class="reel-visual-action reel-modal-trigger" data-video-type="youtube" data-video-id="yk-mDwL93S8" data-video-title="Essa voz fez parte da sua infancia" aria-label="Abrir preview do short Essa voz fez parte da sua infancia"></button>
+                <div class="reel-play" aria-hidden="true"></div>
+                <div class="reel-card-badge">YouTube Shorts</div>
+                <div class="reel-card-views">8.14M</div>
+                <div class="reel-card-label">views atuais</div>
+              </div>
+              <div class="reel-card-body">
+                <h3>Essa voz fez parte da sua infancia</h3>
+                <p>Short com impacto nostalgico e excelente retenção em plataforma de descoberta.</p>
+                <div class="reel-metrics">
+                  <span class="metric-chip"><strong>534K</strong> likes</span>
+                  <span class="metric-chip"><strong>YouTube</strong> Shorts</span>
+                </div>
+                <button type="button" class="ghost-btn reel-link reel-modal-trigger" data-video-type="youtube" data-video-id="yk-mDwL93S8" data-video-title="Essa voz fez parte da sua infancia">Assistir preview</button>
+              </div>
+            </article>
+
+            <article class="reel-card">
+              <div class="reel-card-visual reel-visual-5">
+                <img src="assets/images/reels/strongcast-perdeu-linha.svg" alt="Preview local do reel Ai nao perdeu a linha" class="reel-card-thumb" loading="lazy">
+                <a href="https://www.tiktok.com/@strongcast/video/7593328494059228432?lang=pt-BR" target="_blank" rel="noopener noreferrer" class="reel-visual-action" aria-label="Abrir video Ai nao perdeu a linha no TikTok"></a>
+                <div class="reel-play" aria-hidden="true"></div>
+                <div class="reel-card-badge">TikTok</div>
+                <div class="reel-card-views">4.0M</div>
+                <div class="reel-card-label">views atuais</div>
+              </div>
+              <div class="reel-card-body">
+                <h3>Ai nao... perdeu a linha</h3>
+                <p>Recorte de conversa com forte timing de humor e performance muito consistente.</p>
+                <div class="reel-metrics">
+                  <span class="metric-chip"><strong>490.2K</strong> likes</span>
+                  <span class="metric-chip"><strong>TikTok</strong> humor cut</span>
+                </div>
+                <a href="https://www.tiktok.com/@strongcast/video/7593328494059228432?lang=pt-BR" target="_blank" rel="noopener noreferrer" class="ghost-btn reel-link">Abrir video</a>
+              </div>
+            </article>
+
+            <article class="reel-card">
+              <div class="reel-card-visual reel-visual-6">
+                <img src="assets/images/reels/strongcast-inveja.svg" alt="Preview local do reel Hoje eu conheci a inveja" class="reel-card-thumb" loading="lazy">
+                <a href="https://www.tiktok.com/@strongcast/video/7597202450520558869?lang=pt-BR" target="_blank" rel="noopener noreferrer" class="reel-visual-action" aria-label="Abrir video Hoje eu conheci a inveja no TikTok"></a>
+                <div class="reel-play" aria-hidden="true"></div>
+                <div class="reel-card-badge">TikTok</div>
+                <div class="reel-card-views">3.9M</div>
+                <div class="reel-card-label">views atuais</div>
+              </div>
+              <div class="reel-card-body">
+                <h3>Hoje eu conheci a inveja</h3>
+                <p>Recorte com Anderson Silva, alto engajamento e timing forte para social clip.</p>
+                <div class="reel-metrics">
+                  <span class="metric-chip"><strong>499.6K</strong> likes</span>
+                  <span class="metric-chip"><strong>TikTok</strong> social clip</span>
+                </div>
+                <a href="https://www.tiktok.com/@strongcast/video/7597202450520558869?lang=pt-BR" target="_blank" rel="noopener noreferrer" class="ghost-btn reel-link">Abrir video</a>
+              </div>
+            </article>
+          </div>
+        </div>
+        <p class="reels-note reveal">Metricas publicas verificadas em 26 de marco de 2026 a partir das paginas dos proprios videos.</p>
       </div>
-      <div class="step reveal reveal-delay-4">
-        <div class="step-num">04</div>
-        <h4>Revisão & Entrega</h4>
-        <p>Até 2 rodadas de ajuste. Entrega em até 72h prontos pra publicar.</p>
+    </section>
+
+    <div class="video-modal" id="video-modal" aria-hidden="true">
+      <div class="video-modal-backdrop" data-close-modal></div>
+      <div class="video-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="video-modal-title">
+        <div class="video-modal-head">
+          <h3 id="video-modal-title">Preview do video</h3>
+          <button type="button" class="video-modal-close" id="video-modal-close" aria-label="Fechar preview">×</button>
+        </div>
+        <div class="video-modal-frame" id="video-modal-frame"></div>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- TESTIMONIALS -->
-<section id="depoimentos">
-  <div style="max-width:1200px;margin:0 auto;">
-    <div class="section-label reveal">Depoimentos</div>
-    <h2 class="section-title reveal reveal-delay-1">O que meus clientes<br>falam</h2>
+    <section id="servicos">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div class="section-kicker">Servicos</div>
+          <h2 class="section-title">Uma entrega melhor comeca em um escopo claro.</h2>
+          <p class="section-copy">Em vez de vender tudo para todo mundo, organizei a proposta em tres frentes. Isso deixa a decisao mais simples e a execucao muito mais objetiva.</p>
+        </div>
+        <div class="services-layout">
+          <article class="service-panel reveal">
+            <div>
+              <div class="service-index">01 / Conteudo recorrente</div>
+              <h3>Pacote mensal para criadores e marcas.</h3>
+            </div>
+            <p>Ideal para quem publica com frequencia e precisa manter consistencia visual, velocidade e criterio editorial.</p>
+            <ul class="service-bullets">
+              <li>Planejamento de cortes e linha visual</li>
+              <li>Entregas continuas para feed, reels e shorts</li>
+              <li>Prioridade de pauta e revisoes combinadas</li>
+            </ul>
+          </article>
+          <article class="service-panel reveal">
+            <div>
+              <div class="service-index">02 / Peca principal</div>
+              <h3>Videos de campanha, lancamento ou autoridade.</h3>
+            </div>
+            <p>Projetos com mais direcao criativa, pacing pensado em conversao e acabamento mais cinematografico.</p>
+            <ul class="service-bullets">
+              <li>VSL, video manifesto ou peca de aquisicao</li>
+              <li>Motion graphics e reforcos de argumento</li>
+              <li>Direcao visual alinhada ao posicionamento</li>
+            </ul>
+          </article>
+          <article class="service-panel reveal">
+            <div>
+              <div class="service-index">03 / Podcast e cortes</div>
+              <h3>Do episodio longo para varios ativos curtos.</h3>
+            </div>
+            <p>Um fluxo para transformar conversas completas em conteudo reutilizavel, com leitura rapida e cara de produto premium.</p>
+            <ul class="service-bullets">
+              <li>Versao longa tratada para YouTube</li>
+              <li>Clipes para reels, shorts e teasers</li>
+              <li>Legendas e recortes com foco em retencao</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
 
-    <div class="testi-grid">
-      <div class="testi-card reveal reveal-delay-1">
-        <div class="stars">★★★★★</div>
-        <p class="testi-text">"O Rafael entendeu exatamente o que eu precisava sem precisar falar muito. A edição ficou muito acima do que eu esperava — meu canal cresceu 40% em 2 meses."</p>
-        <div class="testi-author">
-          <div class="avatar av1">LM</div>
+    <section id="processo">
+      <div class="shell">
+        <div class="section-head reveal">
+          <div class="section-kicker">Processo</div>
+          <h2 class="section-title">Fluxo simples para voce nao travar na producao.</h2>
+          <p class="section-copy">A experiencia tambem importa. O processo foi desenhado para reduzir atrito, alinhar expectativa cedo e manter a entrega andando sem confusao.</p>
+        </div>
+        <div class="process-grid">
+          <article class="process-step reveal">
+            <strong>01</strong>
+            <h3>Briefing rapido</h3>
+            <p>Entendo objetivo, publico, referencias e ritmo esperado. O norte criativo sai daqui.</p>
+          </article>
+          <article class="process-step reveal">
+            <strong>02</strong>
+            <h3>Mapa de edicao</h3>
+            <p>Defino estrutura, tom, pontos de retencao e o que precisa ganhar destaque visual.</p>
+          </article>
+          <article class="process-step reveal">
+            <strong>03</strong>
+            <h3>Primeira entrega</h3>
+            <p>Voce recebe uma versao ja madura, com criterio de ritmo, narrativa e leitura na tela.</p>
+          </article>
+          <article class="process-step reveal">
+            <strong>04</strong>
+            <h3>Ajuste e publicacao</h3>
+            <p>Refinamos detalhes, fechamos o pacote final e deixamos tudo pronto para publicar.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="depoimentos">
+      <div class="shell testimonials-layout">
+        <div class="quote-wall">
+          <div class="section-head reveal">
+            <div class="section-kicker">Resultados</div>
+            <h2 class="section-title">Clientes percebem quando a edicao sobe o nivel do projeto.</h2>
+            <p class="section-copy">O retorno mais valioso costuma ser este: o video nao parece so mais bonito, parece mais certo. Mais claro, mais forte e mais facil de confiar.</p>
+          </div>
+          <article class="quote-card reveal">
+            <p>"O Rafael conseguiu dar peso de marca ao meu conteudo. O feed ficou muito mais coerente e os videos finalmente passaram a sensacao de produto premium."</p>
+            <div class="quote-meta">
+              <div>
+                <strong>Lucas Mendes</strong>
+                Criador de conteudo e educador digital
+              </div>
+              <span>280k inscritos</span>
+            </div>
+          </article>
+          <article class="quote-card reveal">
+            <p>"A diferenca nao veio so na estetica. A mensagem ficou mais clara e a conversao respondeu. Foi uma entrega muito mais estrategica do que eu esperava."</p>
+            <div class="quote-meta">
+              <div>
+                <strong>Ana Carolina</strong>
+                Infoprodutora no mercado digital
+              </div>
+              <span>11% de conversao</span>
+            </div>
+          </article>
+        </div>
+        <aside class="results-panel reveal">
+          <h3>Indicadores que resumem o impacto.</h3>
+          <p>Nem todo projeto vai perseguir os mesmos numeros, mas a meta e sempre a mesma: comunicar melhor e aumentar a qualidade da percepcao.</p>
+          <div class="result-line">
+            <strong>98%</strong>
+            <span>dos clientes continuam para novas entregas ou escopos recorrentes.</span>
+          </div>
+          <div class="result-line">
+            <strong>72h</strong>
+            <span>para primeiras entregas em fluxos enxutos e bem definidos.</span>
+          </div>
+          <div class="result-line">
+            <strong>+2,4M</strong>
+            <span>de views em casos selecionados de reels e campanhas de autoridade.</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="cta" id="contato">
+      <div class="shell">
+        <div class="cta-box reveal">
           <div>
-            <div class="author-name">Lucas Mendes</div>
-            <div class="author-role">Criador de Conteúdo · 280k inscritos</div>
+            <div class="section-kicker">Contato</div>
+            <h2 class="section-title">Se o conteudo ja e bom, a edicao precisa acompanhar.</h2>
+            <p class="section-copy">Me chama para alinhar objetivo, formato e volume. Eu organizo a melhor estrutura para o seu momento, sem empurrar escopo desnecessario.</p>
+            <div class="cta-actions">
+              <a href="https://www.instagram.com/rafaa.editor/" target="_blank" rel="noopener noreferrer" class="pill-btn">Falar no Instagram</a>
+              <a href="#portfolio" class="ghost-btn">Revisar portfolio</a>
+            </div>
+          </div>
+          <div class="contact-mini">
+            <span>@rafaa.editor</span>
+            <span>Atendimento remoto</span>
+            <span>Briefing inicial em ate 24h</span>
+            <span>Escopos avulsos e mensais</span>
           </div>
         </div>
       </div>
-      <div class="testi-card reveal reveal-delay-2">
-        <div class="stars">★★★★★</div>
-        <p class="testi-text">"Meu VSL foi editado com um pacing perfeito. Taxa de conversão saiu de 3% para 11% com o mesmo tráfego. Simplesmente inacreditável o retorno."</p>
-        <div class="testi-author">
-          <div class="avatar av2">AC</div>
-          <div>
-            <div class="author-name">Ana Carolina</div>
-            <div class="author-role">Infoprodutora · Mercado Digital</div>
-          </div>
-        </div>
-      </div>
-      <div class="testi-card reveal reveal-delay-3">
-        <div class="stars">★★★★★</div>
-        <p class="testi-text">"Parceria de 8 meses e só tenho a agradecer. Pontual, criativo e sempre com ideias pra melhorar o conteúdo além do que pedi. Recomendo sem hesitar."</p>
-        <div class="testi-author">
-          <div class="avatar av3">RP</div>
-          <div>
-            <div class="author-name">Rodrigo Peixoto</div>
-            <div class="author-role">CEO · Agência de Marketing</div>
-          </div>
-        </div>
-      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-row">
+      <span>Rafael Editor. Direcao, retencao e acabamento para videos que precisam performar.</span>
+      <a href="https://www.instagram.com/rafaa.editor/" target="_blank" rel="noopener noreferrer">Instagram: @rafaa.editor</a>
     </div>
-  </div>
-</section>
+  </footer>
 
-<!-- CLIENTES SATISFEITOS -->
-<section class="clients-section" id="clientes">
-  <div style="max-width:1200px;margin:0 auto;">
-    <div style="text-align:center;">
-      <div class="section-label reveal">Clientes</div>
-      <h2 class="section-title reveal reveal-delay-1">Perfis que confiam<br>no meu trabalho</h2>
-      <p class="section-sub reveal reveal-delay-2" style="margin:0 auto 2.5rem;text-align:center;">Criadores e marcas com resultados extraordinários nas redes.</p>
-      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;" class="reveal reveal-delay-3">
-        <a href="https://wa.me/55SEUNUMERO" target="_blank" class="btn-primary">💬 Solicitar Orçamento</a>
-        <a href="#portfolio" class="btn-secondary">Ver Portfólio</a>
-      </div>
-    </div>
-
-    <div class="clients-cols">
-      <!-- COL 1 -->
-      <div class="clients-col">
-        <div class="clients-inner" style="--dur:18s;">
-          <!-- BATCH A -->
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">BF</div>
-              <div class="cp-name">Befit App</div>
-              <div class="cp-handle">@befitapp.br</div>
-            </div>
-            <a href="https://www.instagram.com/befitapp.br" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">NB</div>
-              <div class="cp-name">Fuad Lucas</div>
-              <div class="cp-handle">@ninjabodybuilder</div>
-            </div>
-            <a href="https://www.instagram.com/ninjabodybuilder" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">BV</div>
-              <div class="cp-name">Bruno Viotti</div>
-              <div class="cp-handle">@bruno_viotti</div>
-            </div>
-            <a href="https://www.instagram.com/bruno_viotti" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <!-- BATCH B (duplicate for loop) -->
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">BF</div>
-              <div class="cp-name">Befit App</div>
-              <div class="cp-handle">@befitapp.br</div>
-            </div>
-            <a href="https://www.instagram.com/befitapp.br" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">NB</div>
-              <div class="cp-name">Fuad Lucas</div>
-              <div class="cp-handle">@ninjabodybuilder</div>
-            </div>
-            <a href="https://www.instagram.com/ninjabodybuilder" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">BV</div>
-              <div class="cp-name">Bruno Viotti</div>
-              <div class="cp-handle">@bruno_viotti</div>
-            </div>
-            <a href="https://www.instagram.com/bruno_viotti" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-        </div>
-      </div>
-
-      <!-- COL 2 (reverse / slower) -->
-      <div class="clients-col">
-        <div class="clients-inner" style="--dur:22s;animation-direction:reverse;">
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">RC</div>
-              <div class="cp-name">Ricardo Correia</div>
-              <div class="cp-handle">@rudeboy_pro212</div>
-            </div>
-            <a href="https://www.instagram.com/rudeboy_pro212" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#CCFFCC)">HO</div>
-              <div class="cp-name">Hoierr</div>
-              <div class="cp-handle">@hoierr_</div>
-            </div>
-            <a href="https://www.instagram.com/hoierr_" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">VV</div>
-              <div class="cp-name">Vini Viking</div>
-              <div class="cp-handle">@viniiviking</div>
-            </div>
-            <a href="https://www.instagram.com/viniiviking" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <!-- duplicate -->
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">RC</div>
-              <div class="cp-name">Ricardo Correia</div>
-              <div class="cp-handle">@rudeboy_pro212</div>
-            </div>
-            <a href="https://www.instagram.com/rudeboy_pro212" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#CCFFCC)">HO</div>
-              <div class="cp-name">Hoierr</div>
-              <div class="cp-handle">@hoierr_</div>
-            </div>
-            <a href="https://www.instagram.com/hoierr_" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#008000,#5CE65C)">VV</div>
-              <div class="cp-name">Vini Viking</div>
-              <div class="cp-handle">@viniiviking</div>
-            </div>
-            <a href="https://www.instagram.com/viniiviking" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-        </div>
-      </div>
-
-      <!-- COL 3 -->
-      <div class="clients-col">
-        <div class="clients-inner" style="--dur:15s;">
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">MC</div>
-              <div class="cp-name">Marcelo Cruz</div>
-              <div class="cp-handle">@cruzbodybuilderpro</div>
-            </div>
-            <a href="https://www.instagram.com/cruzbodybuilderpro" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">PA</div>
-              <div class="cp-name">Pantera</div>
-              <div class="cp-handle">@rodriigopantera</div>
-            </div>
-            <a href="https://www.instagram.com/rodriigopantera" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#CCFFCC)">RS</div>
-              <div class="cp-name">Rafaela Santana</div>
-              <div class="cp-handle">@miinimen</div>
-            </div>
-            <a href="https://www.instagram.com/miinimen" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <!-- duplicate -->
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">MC</div>
-              <div class="cp-name">Marcelo Cruz</div>
-              <div class="cp-handle">@cruzbodybuilderpro</div>
-            </div>
-            <a href="https://www.instagram.com/cruzbodybuilderpro" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#5CE65C)">PA</div>
-              <div class="cp-name">Pantera</div>
-              <div class="cp-handle">@rodriigopantera</div>
-            </div>
-            <a href="https://www.instagram.com/rodriigopantera" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-          <div class="client-card">
-            <div class="client-placeholder">
-              <div class="cp-avatar" style="background:linear-gradient(135deg,#0F4D0F,#CCFFCC)">RS</div>
-              <div class="cp-name">Rafaela Santana</div>
-              <div class="cp-handle">@miinimen</div>
-            </div>
-            <a href="https://www.instagram.com/miinimen" target="_blank" class="client-ig-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- VIEWS GERADAS -->
-<section class="views-section" id="views">
-  <div class="section-label reveal">Impacto</div>
-  <p class="views-label reveal reveal-delay-1">Views geradas para clientes</p>
-  <div class="views-number" id="views-counter">0</div>
-  <p class="views-sub reveal reveal-delay-2">e crescendo a cada projeto entregue</p>
-  <div class="views-bar-wrap reveal reveal-delay-3">
-    <div class="views-bar" id="views-bar"></div>
-  </div>
-</section>
-
-<!-- PRINTS DOS VÍDEOS -->
-<section class="prints-section" id="prints">
-  <div style="max-width:1200px;margin:0 auto;">
-    <div class="carousel-header">
-      <div>
-        <div class="section-label reveal">Prints</div>
-        <h2 class="section-title reveal reveal-delay-1">Resultados em<br>números reais</h2>
-      </div>
-      <div class="prints-nav">
-        <button class="carousel-btn" id="prints-prev" aria-label="Anterior">&#8592;</button>
-        <button class="carousel-btn" id="prints-next" aria-label="Próximo">&#8594;</button>
-      </div>
-    </div>
-
-    <div class="prints-track-wrap">
-      <div class="prints-track" id="prints-track">
-
-        <div class="print-card">
-          <div class="print-placeholder" style="background:linear-gradient(160deg,#0d2b4e,#060f1e);">
-            <div class="print-gfx"></div>
-            <div class="print-icon">📱</div>
-            <div class="print-views">2.4M</div>
-            <div class="print-label-sm">visualizações</div>
-          </div>
-          <div class="print-overlay">
-            <div class="print-tag">Reels</div>
-            <div class="print-desc">Post lifestyle — Befit App</div>
-          </div>
-        </div>
-
-        <div class="print-card">
-          <div class="print-placeholder" style="background:linear-gradient(160deg,#1a0d3e,#080520);">
-            <div class="print-gfx" style="background:radial-gradient(circle at 60% 40%,rgba(139,92,246,.3) 0%,transparent 55%);"></div>
-            <div class="print-icon">🎬</div>
-            <div class="print-views">1.8M</div>
-            <div class="print-label-sm">visualizações</div>
-          </div>
-          <div class="print-overlay">
-            <div class="print-tag">YouTube</div>
-            <div class="print-desc">Vlog semanal — Vini Viking</div>
-          </div>
-        </div>
-
-        <div class="print-card">
-          <div class="print-placeholder" style="background:linear-gradient(160deg,#0a2e1a,#050f0a);">
-            <div class="print-gfx" style="background:radial-gradient(circle at 40% 50%,rgba(5,150,105,.3) 0%,transparent 55%);"></div>
-            <div class="print-icon">⚡</div>
-            <div class="print-views">950K</div>
-            <div class="print-label-sm">visualizações</div>
-          </div>
-          <div class="print-overlay">
-            <div class="print-tag">TikTok</div>
-            <div class="print-desc">Treino viral — Ninja BB</div>
-          </div>
-        </div>
-
-        <div class="print-card">
-          <div class="print-placeholder" style="background:linear-gradient(160deg,#2a1000,#100600);">
-            <div class="print-gfx" style="background:radial-gradient(circle at 50% 35%,rgba(245,158,11,.25) 0%,transparent 55%);"></div>
-            <div class="print-icon">🎯</div>
-            <div class="print-views">580K</div>
-            <div class="print-label-sm">visualizações</div>
-          </div>
-          <div class="print-overlay">
-            <div class="print-tag">Ad</div>
-            <div class="print-desc">Campanha paga — Hoierr</div>
-          </div>
-        </div>
-
-        <div class="print-card">
-          <div class="print-placeholder" style="background:linear-gradient(160deg,#001a2c,#00090f);">
-            <div class="print-gfx" style="background:radial-gradient(circle at 35% 45%,rgba(6,182,212,.25) 0%,transparent 55%);"></div>
-            <div class="print-icon">🔥</div>
-            <div class="print-views">3.1M</div>
-            <div class="print-label-sm">visualizações</div>
-          </div>
-          <div class="print-overlay">
-            <div class="print-tag">Reels</div>
-            <div class="print-desc">Transformação — Cruz Pro</div>
-          </div>
-        </div>
-
-        <div class="print-card">
-          <div class="print-placeholder" style="background:linear-gradient(160deg,#1a001a,#0a000a);">
-            <div class="print-gfx" style="background:radial-gradient(circle at 55% 40%,rgba(190,24,93,.25) 0%,transparent 55%);"></div>
-            <div class="print-icon">💎</div>
-            <div class="print-views">420K</div>
-            <div class="print-label-sm">visualizações</div>
-          </div>
-          <div class="print-overlay">
-            <div class="print-tag">YouTube</div>
-            <div class="print-desc">Documentário — Pantera</div>
-          </div>
-        </div>
-
-        <div class="print-card">
-          <div class="print-placeholder" style="background:linear-gradient(160deg,#0d1b3e,#050a14);">
-            <div class="print-gfx"></div>
-            <div class="print-icon">📈</div>
-            <div class="print-views">1.2M</div>
-            <div class="print-label-sm">visualizações</div>
-          </div>
-          <div class="print-overlay">
-            <div class="print-tag">Reels</div>
-            <div class="print-desc">Série fitness — Bruno Viotti</div>
-          </div>
-        </div>
-
-        <div class="print-card">
-          <div class="print-placeholder" style="background:linear-gradient(160deg,#1a0830,#0a0418);">
-            <div class="print-gfx" style="background:radial-gradient(circle at 45% 40%,rgba(99,102,241,.3) 0%,transparent 55%);"></div>
-            <div class="print-icon">🎵</div>
-            <div class="print-views">700K</div>
-            <div class="print-label-sm">visualizações</div>
-          </div>
-          <div class="print-overlay">
-            <div class="print-tag">TikTok</div>
-            <div class="print-desc">Conteúdo viral — Rafaela S.</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="prints-dots" id="prints-dots"></div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section" id="contato">
-  <div class="section-label">Vamos trabalhar juntos</div>
-  <h2 class="section-title">Pronto pra elevar<br>seu conteúdo?</h2>
-  <p>Mande uma mensagem e receba uma proposta personalizada. Respondo em menos de 24 horas.</p>
-  <div class="cta-btns">
-    <a href="https://wa.me/55SEUNUMERO" class="btn-primary" target="_blank">💬 Falar no WhatsApp</a>
-    <a href="/cdn-cgi/l/email-protection#0173606760646d41646c60686d2f626e6c" class="btn-secondary">✉️ Enviar E-mail</a>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="nav-logo">Rafael<span style="color:var(--blue-light)">.</span></div>
-  <span>© 2026 Rafael — Editor de Vídeos Premium</span>
-  <div style="display:flex;gap:1.5rem;">
-    <a href="#">Instagram</a>
-    <a href="#">YouTube</a>
-    <a href="#">LinkedIn</a>
-  </div>
-</footer>
-
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// CURSOR
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursor-ring');
-let rx=0, ry=0;
-document.addEventListener('mousemove', e => {
-  cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px';
-  rx += (e.clientX - rx) * .12; ry += (e.clientY - ry) * .12;
-  ring.style.left = rx+'px'; ring.style.top = ry+'px';
-});
-function animRing(){ rx += (parseFloat(cursor.style.left||0)-rx)*.12; ry += (parseFloat(cursor.style.top||0)-ry)*.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); }
-animRing();
-
-document.querySelectorAll('a, button').forEach(el => {
-  el.addEventListener('mouseenter', () => { ring.style.width='52px'; ring.style.height='52px'; ring.style.borderColor='rgba(92,230,92,.7)'; cursor.style.opacity='0'; });
-  el.addEventListener('mouseleave', () => { ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(92,230,92,.5)'; cursor.style.opacity='1'; });
-});
-
-// CAROUSEL
-const track = document.getElementById('track');
-const cards = track.querySelectorAll('.carousel-card');
-const dotsContainer = document.getElementById('dots');
-let current = 0;
-const visible = () => window.innerWidth < 768 ? 1 : window.innerWidth < 1100 ? 2 : 3;
-
-function buildDots(){
-  dotsContainer.innerHTML = '';
-  const pages = Math.ceil(cards.length / visible());
-  for(let i=0;i<pages;i++){
-    const d = document.createElement('div');
-    d.className = 'dot' + (i===0?' active':'');
-    d.addEventListener('click', () => goTo(i));
-    dotsContainer.appendChild(d);
-  }
-}
-
-function goTo(idx){
-  const v = visible(); const pages = Math.ceil(cards.length/v);
-  current = Math.max(0, Math.min(idx, pages-1));
-  const cardW = cards[0].getBoundingClientRect().width;
-  const gap = 24;
-  track.style.transform = `translateX(-${current*(cardW+gap)*v}px)`;
-  dotsContainer.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===current));
-}
-
-document.getElementById('prev').addEventListener('click', () => goTo(current-1));
-document.getElementById('next').addEventListener('click', () => goTo(current+1));
-
-buildDots();
-window.addEventListener('resize', () => { buildDots(); goTo(0); });
-
-// Touch swipe
-let startX = 0;
-track.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive:true});
-track.addEventListener('touchend', e => {
-  const diff = startX - e.changedTouches[0].clientX;
-  if(Math.abs(diff) > 50) goTo(current + (diff > 0 ? 1 : -1));
-});
-
-// VIEWS COUNTER
-const viewsEl = document.getElementById('views-counter');
-const viewsBar = document.getElementById('views-bar');
-let viewsAnimated = false;
-
-function animateCounter(el, target, duration) {
-  const start = performance.now();
-  const fmt = n => {
-    if (n >= 1e6) return (n/1e6).toFixed(n >= 10e6 ? 0 : 1) + 'M';
-    if (n >= 1e3) return (n/1e3).toFixed(0) + 'K';
-    return Math.floor(n).toString();
-  };
-  function step(now) {
-    const p = Math.min((now - start) / duration, 1);
-    const ease = 1 - Math.pow(1 - p, 4);
-    el.textContent = fmt(ease * target);
-    if (p < 1) requestAnimationFrame(step);
-    else el.textContent = fmt(target);
-  }
-  requestAnimationFrame(step);
-}
-
-const viewsObs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting && !viewsAnimated) {
-      viewsAnimated = true;
-      animateCounter(viewsEl, 100000000, 2800);
-      setTimeout(() => { viewsBar.style.width = '100%'; }, 200);
-    }
-  });
-}, { threshold: .3 });
-if (viewsEl) viewsObs.observe(viewsEl);
-
-// PRINTS CAROUSEL
-const printsTrack = document.getElementById('prints-track');
-const printsDotsEl = document.getElementById('prints-dots');
-const printCards = printsTrack ? printsTrack.querySelectorAll('.print-card') : [];
-let printsCurrent = 0;
-const printsVisible = () => window.innerWidth < 600 ? 1 : window.innerWidth < 900 ? 2 : window.innerWidth < 1200 ? 3 : 4;
-
-function buildPrintsDots() {
-  if (!printsDotsEl) return;
-  printsDotsEl.innerHTML = '';
-  const pages = Math.ceil(printCards.length / printsVisible());
-  for (let i = 0; i < pages; i++) {
-    const d = document.createElement('div');
-    d.className = 'dot' + (i === 0 ? ' active' : '');
-    d.addEventListener('click', () => goPrints(i));
-    printsDotsEl.appendChild(d);
-  }
-}
-
-function goPrints(idx) {
-  const v = printsVisible();
-  const pages = Math.ceil(printCards.length / v);
-  printsCurrent = Math.max(0, Math.min(idx, pages - 1));
-  const cardW = printCards[0].getBoundingClientRect().width;
-  const gap = 19.2;
-  printsTrack.style.transform = `translateX(-${printsCurrent * (cardW + gap) * v}px)`;
-  printsDotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === printsCurrent));
-}
-
-const pp = document.getElementById('prints-prev');
-const pn = document.getElementById('prints-next');
-if (pp) pp.addEventListener('click', () => goPrints(printsCurrent - 1));
-if (pn) pn.addEventListener('click', () => goPrints(printsCurrent + 1));
-
-buildPrintsDots();
-window.addEventListener('resize', () => { buildPrintsDots(); goPrints(0); });
-
-// Touch for prints
-let printStartX = 0;
-if (printsTrack) {
-  printsTrack.addEventListener('touchstart', e => printStartX = e.touches[0].clientX, {passive:true});
-  printsTrack.addEventListener('touchend', e => {
-    const diff = printStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) goPrints(printsCurrent + (diff > 0 ? 1 : -1));
-  });
-}
-
-const reveals = document.querySelectorAll('.reveal');
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
-}, { threshold: .12 });
-reveals.forEach(r => obs.observe(r));
-</script>
+  <script src="assets/js/main.js" defer></script>
 </body>
 </html>

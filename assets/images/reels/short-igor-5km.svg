@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 960">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#18261a"/><stop offset="100%" stop-color="#09100d"/></linearGradient></defs>
+  <rect width="540" height="960" fill="url(#bg)"/>
+  <circle cx="390" cy="180" r="160" fill="#74f289" opacity=".12"/>
+  <rect x="54" y="74" width="432" height="76" rx="22" fill="rgba(255,255,255,.06)"/>
+  <text x="78" y="122" fill="#f4f7f2" font-family="Arial, sans-serif" font-size="26" font-weight="700">Preview local</text>
+  <text x="78" y="330" fill="#74f289" font-family="Arial, sans-serif" font-size="34" font-weight="700">YOUTUBE SHORTS</text>
+  <text x="78" y="392" fill="#f4f7f2" font-family="Arial, sans-serif" font-size="48" font-weight="700">Igor tentou</text>
+  <text x="78" y="448" fill="#f4f7f2" font-family="Arial, sans-serif" font-size="48" font-weight="700">fazer 5KM</text>
+  <text x="78" y="812" fill="#a7b6ab" font-family="Arial, sans-serif" font-size="24">Substitua por frame real do video</text>
+</svg>
