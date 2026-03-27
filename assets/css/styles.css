@@ -1103,6 +1103,17 @@
       color: var(--muted);
       font-size: .9rem;
     }
+    .footer-meta {
+      display: grid;
+      gap: 8px;
+    }
+    .footer-meta a {
+      color: var(--muted);
+    }
+    .footer-meta a:hover,
+    .footer-meta a:focus-visible {
+      color: var(--text);
+    }
     .reveal {
       opacity: 0;
       transform: translateY(32px);
