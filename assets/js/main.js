@@ -88,7 +88,23 @@ function openYoutubeModal(videoId, title) {
   document.body.style.overflow = "hidden";
 }
 
+function openImageModal(imageSrc, title) {
+  if (!videoModal || !videoModalFrame || !videoModalTitle || !imageSrc) return;
+
+  videoModalTitle.textContent = title || "Preview da imagem";
+  videoModalFrame.innerHTML = `<img src="${imageSrc}" alt="${title || "Imagem ampliada"}" />`;
+  videoModal.classList.add("is-open");
+  videoModal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
 document.addEventListener("click", (event) => {
+  const imageTrigger = event.target.closest(".image-modal-trigger");
+  if (imageTrigger) {
+    openImageModal(imageTrigger.dataset.imageSrc, imageTrigger.dataset.imageTitle);
+    return;
+  }
+
   const trigger = event.target.closest(".reel-modal-trigger");
   if (!trigger) return;
 

@@ -348,72 +348,27 @@
     }
     .hero-stage {
       position: relative;
-      min-height: 420px;
+      min-height: 0;
       width: 100%;
       max-width: 720px;
       justify-self: end;
-      border-radius: 28px;
-      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 0;
+      border: 0;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 18% 18%, rgba(116,242,137,.24), transparent 26%),
-        radial-gradient(circle at 78% 78%, rgba(116,242,137,.12), transparent 24%),
-        linear-gradient(150deg, rgba(20,38,33,.88), rgba(6,11,10,.96));
-      box-shadow: var(--shadow);
-    }
-    .hero-stage::before {
-      content: "";
-      position: absolute;
-      inset: 14px;
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.08);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.06), transparent 30%),
-        linear-gradient(135deg, rgba(116,242,137,.1), transparent 40%);
-    }
-    .stage-chip {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 2;
-      display: inline-flex;
-      gap: 12px;
-      align-items: center;
-      min-height: 40px;
-      padding: 0 16px;
-      border-radius: 999px;
-      backdrop-filter: blur(14px);
-      background: rgba(7,17,15,.58);
-      border: 1px solid var(--line);
-      color: var(--muted);
-      font-size: .85rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-    .stage-chip strong { color: var(--text); letter-spacing: 0; text-transform: none; }
-    .stage-visual {
-      position: relative;
-      inset: auto;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      padding: 68px 14px 14px;
+      background: transparent;
+      box-shadow: none;
     }
     .reel-screen, .glass-panel, .work-card, .service-panel, .quote-card, .results-panel, .cta-box {
       border-radius: 24px;
       border: 1px solid rgba(255,255,255,.08);
     }
     .reel-screen {
-      padding: 20px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       min-height: 0;
-      background:
-        linear-gradient(160deg, rgba(255,255,255,.08), transparent 28%),
-        radial-gradient(circle at 20% 20%, rgba(116,242,137,.28), transparent 24%),
-        linear-gradient(180deg, #16332b 0%, #091311 100%);
+      background: rgba(9,17,15,.86);
     }
     .reel-meta {
       display: grid;
@@ -428,45 +383,22 @@
       text-transform: uppercase;
       font-weight: 700;
     }
-    .reel-meta h2 { margin-top: 8px; font-size: clamp(1.5rem, 2vw, 2.1rem); max-width: 8ch; }
-    .play-core {
-      width: 68px;
-      height: 68px;
-      border-radius: 50%;
-      background: rgba(244,247,242,.12);
-      border: 1px solid rgba(255,255,255,.18);
-      display: grid;
-      place-items: center;
-      box-shadow: inset 0 0 0 10px rgba(255,255,255,.04);
-    }
-    .play-core::before {
-      content: "";
-      width: 0;
-      height: 0;
-      border-left: 14px solid var(--text);
-      border-top: 9px solid transparent;
-      border-bottom: 9px solid transparent;
-      margin-left: 4px;
-    }
-    .reel-wave {
-      height: 120px;
-      border-radius: 22px;
+    .reel-meta h2 { margin-top: 8px; font-size: clamp(1.5rem, 2vw, 2rem); max-width: 12ch; }
+    .hero-intro-media {
       position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      border-radius: 0;
       overflow: hidden;
-      background:
-        linear-gradient(90deg, transparent 0 6%, rgba(116,242,137,.34) 6% 7%, transparent 7% 9%),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 2px, transparent 2px 22px),
-        linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+      background: #000;
     }
-    .reel-wave::before {
-      content: "";
-      position: absolute;
-      inset: 22px 0;
-      background: linear-gradient(90deg, transparent, rgba(116,242,137,.4) 20%, rgba(116,242,137,.1) 45%, rgba(116,242,137,.42) 75%, transparent);
-      mask: radial-gradient(circle at 10px 50%, #000 0 12px, transparent 13px) 0 50% / 70px 100% repeat-x;
-      animation: signal 11s linear infinite;
+    .hero-intro-media iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
     }
-    .stage-stack { display: grid; gap: 12px; min-height: 0; }
     .glass-panel {
       padding: 18px;
       background: rgba(8,15,13,.72);
@@ -873,12 +805,20 @@
     }
     .reel-card {
       width: min(280px, 72vw);
-      border-radius: 24px;
-      border: 1px solid var(--line);
+      position: relative;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,.08);
       overflow: hidden;
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      box-shadow: 0 16px 44px rgba(0,0,0,.16);
+      background: linear-gradient(180deg, rgba(16,28,24,.96), rgba(7,13,11,.98));
+      box-shadow: 0 18px 52px rgba(0,0,0,.18);
       scroll-snap-align: start;
+      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+    .reel-card:hover,
+    .reel-card:focus-within {
+      transform: translateY(-4px);
+      border-color: rgba(116,242,137,.24);
+      box-shadow: 0 26px 72px rgba(0,0,0,.24);
     }
     .reel-card-visual {
       min-height: 360px;
@@ -964,16 +904,16 @@
       position: relative;
       z-index: 2;
       width: fit-content;
-      min-height: 32px;
-      padding: 0 12px;
+      min-height: 34px;
+      padding: 0 14px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.1);
-      background: rgba(7,17,15,.58);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(7,17,15,.68);
       display: inline-flex;
       align-items: center;
-      color: rgba(255,255,255,.84);
-      font-size: .74rem;
-      letter-spacing: .12em;
+      color: rgba(255,255,255,.92);
+      font-size: .72rem;
+      letter-spacing: .16em;
       text-transform: uppercase;
       font-weight: 800;
     }
@@ -989,26 +929,28 @@
     }
     .reel-card-views {
       font-family: "Syne", sans-serif;
-      font-size: clamp(2.8rem, 5vw, 4rem);
+      font-size: clamp(2.5rem, 4.8vw, 3.8rem);
       line-height: .9;
       letter-spacing: -.06em;
       color: var(--accent);
+      text-shadow: 0 8px 24px rgba(0,0,0,.24);
     }
     .reel-card-label {
       color: rgba(255,255,255,.82);
-      font-size: .82rem;
+      font-size: .76rem;
       letter-spacing: .16em;
       text-transform: uppercase;
       font-weight: 800;
     }
     .reel-card-body {
-      padding: 18px;
+      padding: 20px 20px 22px;
       display: grid;
-      gap: 10px;
+      gap: 12px;
     }
     .reel-card-body h3 {
-      font-size: 1.14rem;
-      line-height: 1.04;
+      font-size: 1.22rem;
+      line-height: 1.02;
+      max-width: 16ch;
     }
     .reel-card-body p {
       color: var(--muted);
@@ -1019,18 +961,20 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      margin-top: 2px;
     }
     .reel-link {
       width: 100%;
-      min-height: 42px;
+      min-height: 44px;
       justify-content: center;
       cursor: pointer;
     }
     .reels-note {
-      margin-top: 16px;
+      margin-top: 18px;
       color: var(--muted);
-      font-size: .85rem;
-      line-height: 1.6;
+      font-size: .88rem;
+      line-height: 1.7;
+      max-width: 58ch;
     }
     .video-modal {
       position: fixed;
@@ -1099,6 +1043,13 @@
       border: 0;
       display: block;
     }
+    .video-modal-frame img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background: #000;
+    }
     .services-layout, .process-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -1117,7 +1068,9 @@
     .process-grid { gap: 16px; }
     .process-step {
       padding: 26px 22px;
-      border-top: 1px solid var(--line);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
       display: grid;
       gap: 18px;
     }
@@ -1200,30 +1153,31 @@
       padding: clamp(30px, 5vw, 56px);
       border: 1px solid var(--line-2);
       background:
-        radial-gradient(circle at 12% 20%, rgba(116,242,137,.18), transparent 24%),
+        radial-gradient(circle at 12% 20%, rgba(116,242,137,.22), transparent 26%),
         radial-gradient(circle at 88% 72%, rgba(116,242,137,.12), transparent 18%),
-        linear-gradient(135deg, rgba(18,33,29,.94), rgba(8,15,13,.98));
-      box-shadow: var(--shadow);
+        linear-gradient(135deg, rgba(20,36,31,.96), rgba(8,15,13,.98));
+      box-shadow: 0 24px 90px rgba(0,0,0,.26);
       align-items: end;
     }
     .cta-box .section-title { max-width: 11ch; }
     .cta-box .section-copy { max-width: 44ch; margin-top: 16px; }
     .offer-stack {
       display: grid;
-      gap: 18px;
-      margin-top: 24px;
+      gap: 20px;
+      margin-top: 26px;
     }
     .offer-price {
-      padding: 20px 22px;
-      border-radius: 24px;
-      border: 1px solid rgba(116,242,137,.22);
+      padding: 22px 24px;
+      border-radius: 26px;
+      border: 1px solid rgba(116,242,137,.28);
       background:
-        radial-gradient(circle at top right, rgba(116,242,137,.18), transparent 32%),
-        rgba(255,255,255,.04);
+        radial-gradient(circle at top right, rgba(116,242,137,.22), transparent 32%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
       display: grid;
-      gap: 6px;
+      gap: 8px;
       width: fit-content;
       max-width: 100%;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
     .offer-label {
       color: var(--accent);
@@ -1234,7 +1188,7 @@
     }
     .offer-price strong {
       font-family: "Syne", sans-serif;
-      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-size: clamp(2.15rem, 4.2vw, 3.35rem);
       line-height: .92;
       letter-spacing: -.06em;
     }
@@ -1242,16 +1196,31 @@
       color: var(--muted);
       font-size: .94rem;
     }
+    .offer-anchor {
+      max-width: 48ch;
+      padding-left: 14px;
+      border-left: 2px solid rgba(116,242,137,.34);
+      color: rgba(244,247,242,.88);
+      font-size: .96rem;
+      line-height: 1.7;
+    }
     .offer-list {
       list-style: none;
       display: grid;
-      gap: 10px;
+      gap: 12px;
       color: rgba(255,255,255,.9);
+      padding: 18px 18px 0 0;
     }
     .offer-list li {
       display: flex;
       align-items: flex-start;
       gap: 10px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .offer-list li:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
     }
     .offer-list li::before {
       content: "";
@@ -1262,26 +1231,53 @@
       flex: 0 0 auto;
       margin-top: 8px;
     }
+    .offer-assurance {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .offer-assurance-item {
+      min-height: 110px;
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+    .offer-assurance-label {
+      color: var(--accent);
+      font-size: .72rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+    .offer-assurance-item strong {
+      font-size: .98rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
     .contact-mini {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 14px;
       width: 100%;
       color: var(--muted);
       font-size: .95rem;
     }
     .contact-mini-card {
       min-height: 118px;
-      padding: 18px;
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.04);
+      padding: 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.03));
       display: grid;
       align-content: space-between;
       gap: 12px;
     }
     .contact-mini-card strong {
-      font-size: 1rem;
+      font-size: 1.02rem;
       line-height: 1.35;
       color: var(--text);
     }
@@ -1327,7 +1323,6 @@
     }
     @keyframes enter { to { opacity: 1; transform: translateY(0); } }
     @keyframes heroStage { to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes signal { from { transform: translateX(-8%); } to { transform: translateX(8%); } }
     @keyframes sweep { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
     @keyframes clientsScroll { to { transform: translateX(calc(-50% - 8px)); } }
     @keyframes clientsScrollReverse { from { transform: translateX(calc(-50% - 8px)); } to { transform: translateX(0); } }
@@ -1344,34 +1339,32 @@
     @media (min-width: 820px) {
       .hero-grid {
         min-height: calc(100svh - var(--nav-h) - 32px);
-        grid-template-columns: minmax(0,1.06fr) minmax(420px,.94fr);
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .hero-copy {
+        max-width: 100%;
+      }
+      .hero h1,
+      .hero p,
+      .hero-offer-strip,
+      .hero-proof,
+      .hero-matrix {
+        max-width: 100%;
       }
       .hero-stage {
-        min-height: clamp(430px, 36vw, 520px);
-        max-width: 780px;
+        max-width: 100%;
+        justify-self: stretch;
       }
-      .stage-visual {
-        grid-template-columns: minmax(0,1.02fr) minmax(270px,.9fr);
-        gap: 12px;
-        padding: 74px 18px 18px;
-      }      .reel-meta h2 { font-size: clamp(1.3rem, 1.55vw, 1.75rem); max-width: 7ch; }
-      .reel-wave { height: 108px; }
-      .stage-stack {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto;
-      }
+      .reel-meta h2 { font-size: clamp(1.3rem, 1.55vw, 1.75rem); max-width: 10ch; }
       .glass-panel, .reel-screen { padding: 16px; }
       .metric-number { font-size: clamp(2rem, 2.2vw, 2.8rem); }
       .metric-panel p { font-size: .84rem; max-width: 23ch; }
       .metric-list { gap: 7px; margin-top: 6px; font-size: .82rem; }
-      .shot-grid { gap: 8px; grid-auto-rows: minmax(72px, 1fr); }
-      .shot { min-height: 72px; padding: 10px; font-size: .82rem; }
-      .stage-chip { top: 18px; left: 18px; }
       .works-wrap, .testimonials-layout, .cta-box {
         grid-template-columns: minmax(0,.92fr) minmax(0,1.08fr);
       }
       .reel-card {
-        width: 300px;
+        width: 312px;
       }
       .reel-card-visual {
         min-height: 390px;
@@ -1412,21 +1405,12 @@
       .work-visual { min-height: 320px; }
       .contact-mini { justify-items: stretch; text-align: left; }
       .hero-stage {
-        min-height: clamp(420px, 28vw, 480px);
         max-width: 720px;
       }
       .hero-matrix {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         max-width: 980px;
       }
-      .stage-visual {
-        grid-template-columns: minmax(0,1fr) minmax(280px,.88fr);
-        gap: 12px;
-        padding: 76px 18px 18px;
-      }
-      .reel-wave { height: 112px; }
-      .shot-grid { grid-auto-rows: minmax(74px, 1fr); }
-      .shot { min-height: 74px; }
     }
     @media (max-width: 860px) {
       :root { --nav-h: 62px; }
@@ -1515,11 +1499,13 @@
       .hero { padding-top: 20px; }
       .hero-grid { min-height: auto; }
       .hero-stage { min-height: auto; }
-      .stage-stack { grid-template-columns: 1fr 1fr; }
       .contact-mini { grid-template-columns: 1fr; }
     }
     @media (max-width: 680px) {
-      .proof-grid, .services-layout, .process-grid, .stage-stack, .shot-grid { grid-template-columns: 1fr; }
+      .proof-grid, .services-layout, .process-grid { grid-template-columns: 1fr; }
+      .hero-copy {
+        order: 2;
+      }
       .hero-copy {
         display: flex;
         flex-direction: column;
@@ -1538,29 +1524,38 @@
         min-height: 0;
       }
       .hero-stage {
-        display: none;
+        display: block;
+        order: 1;
+        min-height: 0;
+        max-width: 100%;
+        border-radius: 22px;
       }
       .hero p {
         margin-top: 14px;
         font-size: .93rem;
         line-height: 1.62;
       }
+      .reel-meta,
+      .metric-panel,
+      .shot-panel {
+        display: none;
+      }
+      .reel-screen {
+        padding: 0;
+        min-height: 0;
+        background: transparent;
+        border: 0;
+      }
+      .hero-intro-media {
+        aspect-ratio: 16 / 10;
+      }
       .shot-panel { display: none; }
       .hero h1 {
         margin-top: 16px;
-        max-width: 9ch;
+        max-width: 100%;
         font-size: clamp(2rem, 9.6vw, 3rem);
         line-height: .94;
       }
-      .stage-chip {
-        left: 14px;
-        right: 14px;
-        min-height: 40px;
-        padding: 10px 14px;
-        justify-content: space-between;
-        font-size: .74rem;
-      }
-      .play-core { width: 58px; height: 58px; }
       .reel-screen, .glass-panel, .work-card, .service-panel, .quote-card, .results-panel, .cta-box {
         border-radius: 20px;
       }
@@ -1568,17 +1563,14 @@
       .hero-actions {
         gap: 10px;
         margin-top: 18px;
-        order: 3;
+        order: 4;
       }
-      .hero-offer-strip { order: 4; }
-      .hero p { order: 5; }
-      .hero-proof { order: 6; }
-      .hero-matrix { order: 7; }
+      .hero-offer-strip { order: 5; }
+      .hero p { order: 6; }
+      .hero-proof { order: 7; }
+      .hero-matrix { order: 8; }
       .hero-actions a, .cta-actions a { width: 100%; }
       .brand-note { display: none; }
-      /* stage-visual: tighter padding on small screens */
-      .stage-visual { padding: 60px 12px 12px; gap: 10px; }
-      .reel-wave { height: 88px; }
       .metric-number { font-size: 2rem; }
       .hero-proof {
         gap: 8px;
@@ -1607,6 +1599,17 @@
         width: 100%;
         padding: 18px;
       }
+      .offer-anchor {
+        max-width: none;
+        padding-left: 12px;
+        font-size: .92rem;
+      }
+      .offer-list {
+        padding-right: 0;
+      }
+      .offer-assurance {
+        grid-template-columns: 1fr;
+      }
       .video-modal {
         padding: 12px;
       }
@@ -1619,9 +1622,20 @@
       }
       .reel-card {
         width: 78vw;
+        border-radius: 24px;
       }
       .reel-card-visual {
         min-height: 310px;
+      }
+      .reel-card-body {
+        padding: 18px 18px 20px;
+      }
+      .reel-card-body h3 {
+        font-size: 1.12rem;
+        max-width: none;
+      }
+      .reels-note {
+        font-size: .84rem;
       }
       .reel-play {
         width: 64px;
@@ -1699,7 +1713,13 @@
       .hero-stage { min-height: 0; }
       .hero h1 {
         font-size: clamp(1.54rem, 7.5vw, 2.08rem);
-        max-width: 8ch;
+        max-width: 100%;
+      }
+      .hero-stage {
+        margin-top: 12px;
+      }
+      .hero-intro-media {
+        aspect-ratio: 16 / 10;
       }
       .hero p {
         display: none;
@@ -1740,6 +1760,20 @@
       .offer-price strong {
         font-size: clamp(1.7rem, 10vw, 2.3rem);
       }
+      .offer-anchor {
+        font-size: .9rem;
+        line-height: 1.62;
+      }
+      .offer-assurance-item {
+        min-height: 0;
+        padding: 14px;
+      }
+      .offer-assurance-item strong {
+        font-size: .92rem;
+      }
+      .offer-list li {
+        font-size: .92rem;
+      }
       .whatsapp-float {
         width: 54px;
         min-width: 54px;
@@ -1751,10 +1785,6 @@
       .whatsapp-float-text {
         display: none;
       }
-      /* Smaller reel-wave so the screen block doesn't dominate */
-      .reel-wave { height: 72px; }
-      .stage-visual { padding: 56px 10px 10px; gap: 8px; }
-      .shot { min-height: 66px; font-size: .8rem; }
       /* Proof chips: allow wrap, don't overflow */
       .hero-proof span { font-size: .82rem; padding: 0 10px; }
     }
@@ -1762,10 +1792,8 @@
       .hero h1 { font-size: clamp(2rem, 12vw, 2.6rem); }
       .hero-actions a { font-size: .92rem; min-height: 48px; }
       .proof-strip { padding: 14px 0 4px; }
-      .stage-chip { font-size: .7rem; padding: 8px 12px; }
       .section-title { font-size: clamp(1.7rem, 9vw, 2.4rem); }
       .reel-screen, .glass-panel { padding: 14px; }
-      .reel-wave { height: 60px; }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
