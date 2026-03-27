@@ -9,6 +9,7 @@ const videoModalFrame = document.getElementById("video-modal-frame");
 const videoModalTitle = document.getElementById("video-modal-title");
 const reelsCarousel = document.querySelector(".reels-carousel");
 const reelsTrack = document.querySelector(".reels-track");
+const whatsappLinks = document.querySelectorAll("[data-whatsapp-link]");
 
 function closeMenu() {
   if (!siteNav) return;
@@ -32,6 +33,18 @@ if (menuToggle) {
 }
 
 navOverlay?.addEventListener("click", closeMenu);
+
+whatsappLinks.forEach((link) => {
+  link.addEventListener("click", () => {
+    if (typeof window.gtag !== "function") return;
+
+    window.gtag("event", "click_whatsapp", {
+      event_category: "engagement",
+      event_label: link.dataset.whatsappLink || "unknown",
+      destination: "whatsapp",
+    });
+  });
+});
 
 navLinks.forEach((link) => {
   link.addEventListener("click", closeMenu);

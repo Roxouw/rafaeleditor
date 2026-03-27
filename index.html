@@ -38,6 +38,19 @@
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-SPTH4QZFCH"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      window.gtag = gtag;
+      gtag("js", new Date());
+      gtag("config", "G-SPTH4QZFCH");
+    </script>
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Syne:wght@500;700;800&display=swap"
       rel="stylesheet"
@@ -1540,10 +1553,11 @@
               </p>
               <div class="cta-actions">
                 <a
-                  href="https://wa.me/5551981876201"
+                  href="https://api.whatsapp.com/send?phone=5551981876201&text=Oi%20Rafael%2C%20vim%20pelo%20site%20e%20quero%20falar%20sobre%20edicao."
                   target="_blank"
                   rel="noopener noreferrer"
                   class="pill-btn"
+                  data-whatsapp-link="contact"
                   >Falar no WhatsApp</a
                 >
                 <a
@@ -1568,11 +1582,12 @@
     </main>
 
     <a
-      href="https://wa.me/5551981876201"
+      href="https://api.whatsapp.com/send?phone=5551981876201&text=Oi%20Rafael%2C%20vim%20pelo%20site%20e%20quero%20falar%20sobre%20edicao."
       target="_blank"
       rel="noopener noreferrer"
       class="whatsapp-float"
       aria-label="Falar no WhatsApp"
+      data-whatsapp-link="floating"
     >
       <span class="whatsapp-float-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
