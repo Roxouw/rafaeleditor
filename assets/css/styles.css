@@ -60,7 +60,7 @@
     .site-nav {
       position: sticky;
       top: 0;
-      z-index: 20;
+      z-index: 40;
       min-height: var(--nav-h);
       backdrop-filter: blur(18px);
       background: rgba(7,17,15,.74);
@@ -92,6 +92,15 @@
       font-weight: 700;
     }
     .brand-mark { color: var(--accent); }
+    .nav-overlay {
+      display: none;
+    }
+    .nav-drawer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
     .nav-links {
       display: flex;
       list-style: none;
@@ -101,6 +110,11 @@
     }
     .nav-links a:hover, .nav-links a:focus-visible { color: var(--text); }
     .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .nav-mobile-toggle {
+      display: none;
+      position: relative;
+      z-index: 32;
+    }
     .site-nav .pill-btn {
       min-height: 42px;
       padding: 0 18px;
@@ -139,30 +153,49 @@
     }
     .menu-toggle {
       display: none;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.03);
+      position: relative;
+      width: 42px;
+      height: 42px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(255,255,255,.02);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
       align-items: center;
       justify-content: center;
       cursor: pointer;
       touch-action: manipulation;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
     }
-    .menu-toggle span, .menu-toggle::before, .menu-toggle::after {
-      content: "";
-      display: block;
+    .menu-toggle-icon {
+      position: absolute;
       width: 18px;
-      height: 2px;
-      border-radius: 999px;
-      background: var(--text);
-      transition: transform .24s ease, opacity .24s ease;
+      height: 18px;
+      color: rgba(244,247,242,.92);
+      transition: opacity .2s ease, transform .2s ease;
+      pointer-events: none;
     }
-    .menu-toggle::before { transform: translateY(-6px); }
-    .menu-toggle::after { transform: translateY(6px); }
-    .menu-toggle.active span { opacity: 0; }
-    .menu-toggle.active::before { transform: translateY(2px) rotate(45deg); }
-    .menu-toggle.active::after { transform: rotate(-45deg); }
+    .menu-toggle:hover,
+    .menu-toggle:focus-visible {
+      background: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.12);
+      transform: translateY(-1px);
+    }
+    .menu-toggle-icon--close {
+      opacity: 0;
+      transform: scale(.86) rotate(-12deg);
+    }
+    .menu-toggle.active {
+      background: rgba(255,255,255,.05);
+      border-color: rgba(255,255,255,.14);
+    }
+    .menu-toggle.active .menu-toggle-icon--open {
+      opacity: 0;
+      transform: scale(.86) rotate(12deg);
+    }
+    .menu-toggle.active .menu-toggle-icon--close {
+      opacity: 1;
+      transform: scale(1) rotate(0);
+    }
     .hero { padding: 40px 0 24px; }
     .hero-grid {
       min-height: auto;
@@ -461,19 +494,26 @@
       mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
       -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
     }
+    .clients-carousel + .clients-carousel {
+      margin-top: 18px;
+    }
     .clients-track {
       display: flex;
       gap: 16px;
       width: max-content;
       animation: clientsScroll 34s linear infinite;
     }
+    .clients-track--reverse {
+      animation-name: clientsScrollReverse;
+      animation-duration: 26s;
+    }
     .clients-carousel:hover .clients-track {
       animation-play-state: paused;
     }
     .client-card {
-      width: min(320px, 78vw);
-      min-height: 304px;
-      padding: 22px;
+      width: min(280px, 72vw);
+      min-height: 238px;
+      padding: 18px;
       border-radius: 24px;
       border: 1px solid var(--line);
       background:
@@ -486,7 +526,7 @@
     }
     .client-top {
       display: grid;
-      gap: 14px;
+      gap: 12px;
     }
     .client-brand {
       display: flex;
@@ -532,7 +572,7 @@
       font-weight: 800;
     }
     .client-card h3 {
-      font-size: 1.42rem;
+      font-size: 1.24rem;
       line-height: 1.02;
     }
     .client-scale {
@@ -557,19 +597,19 @@
     .client-impact {
       display: flex;
       align-items: flex-end;
-      gap: 10px;
+      gap: 8px;
     }
     .client-metric {
       font-family: "Syne", sans-serif;
-      font-size: clamp(2.4rem, 4vw, 3.6rem);
+      font-size: clamp(2rem, 3.5vw, 2.9rem);
       color: var(--accent);
       line-height: .9;
       letter-spacing: -.06em;
     }
     .client-metric-note {
       color: var(--muted);
-      font-size: .86rem;
-      padding-bottom: 6px;
+      font-size: .8rem;
+      padding-bottom: 4px;
     }
     .client-tags {
       display: flex;
@@ -588,15 +628,64 @@
       font-size: .78rem;
       font-weight: 700;
     }
-    .client-copy {
-      color: var(--muted);
-      line-height: 1.65;
-      font-size: .92rem;
-    }
     .client-link {
       width: 100%;
-      min-height: 44px;
+      min-height: 40px;
       justify-content: center;
+    }
+    .clients-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: .85rem;
+      line-height: 1.6;
+    }
+    .whatsapp-float {
+      position: fixed;
+      right: max(18px, env(safe-area-inset-right));
+      bottom: max(18px, env(safe-area-inset-bottom));
+      z-index: 40;
+      min-height: 56px;
+      padding: 0 16px 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(116,242,137,.24);
+      background: rgba(8,22,17,.88);
+      box-shadow: 0 18px 38px rgba(0,0,0,.26);
+      backdrop-filter: blur(14px);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+    .whatsapp-float:hover,
+    .whatsapp-float:focus-visible {
+      transform: translateY(-2px);
+      background: rgba(10,28,20,.94);
+      border-color: rgba(116,242,137,.4);
+    }
+    .whatsapp-float-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7ff397, #48d46a);
+      display: grid;
+      place-items: center;
+      color: #08210d;
+      font-family: "Syne", sans-serif;
+      font-size: .95rem;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(116,242,137,.2);
+      flex: 0 0 auto;
+    }
+    .whatsapp-float-icon svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+    .whatsapp-float-text {
+      font-size: .92rem;
+      font-weight: 800;
+      letter-spacing: .02em;
     }
     section { padding: clamp(72px, 10vw, 110px) 0; }
     .section-head { display: grid; gap: 14px; margin-bottom: 34px; max-width: 720px; }
@@ -694,6 +783,7 @@
       overflow-x: auto;
       padding-bottom: 10px;
       scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
     .reels-carousel::-webkit-scrollbar {
       display: none;
@@ -718,7 +808,6 @@
       padding: 20px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       background:
         linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.28)),
         linear-gradient(145deg, #16312b, #091412);
@@ -811,9 +900,17 @@
       text-transform: uppercase;
       font-weight: 800;
     }
-    .reel-card-views {
-      position: relative;
+    .reel-card-stats {
+      position: absolute;
+      right: 20px;
+      bottom: 18px;
+      left: 20px;
       z-index: 2;
+      display: grid;
+      gap: 4px;
+      pointer-events: none;
+    }
+    .reel-card-views {
       font-family: "Syne", sans-serif;
       font-size: clamp(2.8rem, 5vw, 4rem);
       line-height: .9;
@@ -821,8 +918,6 @@
       color: var(--accent);
     }
     .reel-card-label {
-      position: relative;
-      z-index: 2;
       color: rgba(255,255,255,.82);
       font-size: .82rem;
       letter-spacing: .16em;
@@ -1034,6 +1129,7 @@
     @keyframes signal { from { transform: translateX(-8%); } to { transform: translateX(8%); } }
     @keyframes sweep { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
     @keyframes clientsScroll { to { transform: translateX(calc(-50% - 8px)); } }
+    @keyframes clientsScrollReverse { from { transform: translateX(calc(-50% - 8px)); } to { transform: translateX(0); } }
     @media (min-width: 640px) {
       .shell { width: min(calc(100% - 32px), var(--max)); }
       .proof-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1118,8 +1214,13 @@
     }
     @media (max-width: 860px) {
       :root { --nav-h: 62px; }
-      .nav-links, .nav-actions .pill-btn { display: none; }
+
+      .nav-overlay { display: none; }
+      .nav-links,
+      .nav-actions .pill-btn { display: none; }
+      .nav-mobile-toggle { display: flex; align-items: center; justify-self: end; }
       .menu-toggle { display: inline-flex; }
+
       .site-nav { padding: 8px 0; }
       .site-nav .shell {
         min-height: auto;
@@ -1128,62 +1229,81 @@
         align-items: center;
         gap: 10px 12px;
       }
-      .brand {
-        min-width: 0;
-        font-size: 1.18rem;
-        align-items: center;
-      }
+      .brand { min-width: 0; font-size: 1.18rem; align-items: center; }
       .brand > span:first-child {
         min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .nav-actions {
-        justify-self: end;
-        gap: 8px;
+
+      /* Drawer: escondido fora da tela, sem cobrir nada */
+      .nav-drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100dvh;
+        z-index: 200;
+        padding: 90px 24px 40px;
+        background: #07110f;
+        display: grid;
+        align-content: start;
+        gap: 12px;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(-8px);
+        transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
+      }
+
+      /* ── MENU ABERTO ─────────────────────────── */
+      .site-nav.open .nav-drawer {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+      .site-nav.open .nav-mobile-toggle {
+        position: fixed;
+        top: 10px;
+        right: 12px;
+        z-index: 210;
       }
       .site-nav.open .nav-links {
-        position: static;
-        grid-column: 1 / -1;
-        width: 100%;
-        margin-top: 6px;
-        padding: 14px;
-        border-radius: 20px;
-        border: 1px solid var(--line);
-        background: rgba(10,18,16,.96);
         display: grid;
-        gap: 6px;
-        box-shadow: 0 18px 40px rgba(0,0,0,.24);
+        gap: 10px;
+        color: var(--text);
       }
       .site-nav.open .nav-actions {
-        grid-column: 1 / -1;
-        justify-self: stretch;
         width: 100%;
+        display: grid;
+        gap: 10px;
       }
       .site-nav.open .nav-actions .pill-btn {
         display: inline-flex;
         width: 100%;
-        min-height: 46px;
+        min-height: 52px;
         margin-top: 4px;
       }
-      /* Open menu links need min touch height */
       .site-nav.open .nav-links a {
         display: flex;
         align-items: center;
-        padding: 10px 12px;
-        min-height: 44px;
-        border-radius: 14px;
-        background: rgba(255,255,255,.02);
+        padding: 16px 18px;
+        min-height: 56px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,.07);
+        background: rgba(255,255,255,.04);
+        font-size: 1.05rem;
       }
       .hero { padding-top: 20px; }
       .hero-grid { min-height: auto; }
       .hero-stage { min-height: auto; }
-      /* stage-stack side by side only when there's enough room */
       .stage-stack { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 680px) {
       .proof-grid, .services-layout, .process-grid, .stage-stack, .shot-grid { grid-template-columns: 1fr; }
+      .shot-panel { display: none; }
       .hero h1 { font-size: clamp(2.3rem, 11.5vw, 3.8rem); }
       .stage-chip {
         left: 14px;
@@ -1236,6 +1356,19 @@
       }
       .clients-track {
         animation-duration: 42s;
+      }
+      .whatsapp-float {
+        right: 14px;
+        bottom: max(14px, env(safe-area-inset-bottom));
+        min-height: 52px;
+        padding: 0 14px 0 10px;
+      }
+      .whatsapp-float-icon {
+        width: 32px;
+        height: 32px;
+      }
+      .whatsapp-float-text {
+        font-size: .88rem;
       }
       .client-card {
         width: 84vw;
