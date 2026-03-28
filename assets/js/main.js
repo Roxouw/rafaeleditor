@@ -10,6 +10,13 @@ const videoModalTitle = document.getElementById("video-modal-title");
 const reelsCarousel = document.querySelector(".reels-carousel");
 const reelsTrack = document.querySelector(".reels-track");
 const whatsappLinks = document.querySelectorAll("[data-whatsapp-link]");
+const heroStage = document.querySelector(".hero-stage");
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function syncNavState() {
+  if (!siteNav) return;
+  siteNav.classList.toggle("is-scrolled", window.scrollY > 12);
+}
 
 function closeMenu() {
   if (!siteNav) return;
@@ -33,6 +40,8 @@ if (menuToggle) {
 }
 
 navOverlay?.addEventListener("click", closeMenu);
+syncNavState();
+window.addEventListener("scroll", syncNavState, { passive: true });
 
 whatsappLinks.forEach((link) => {
   link.addEventListener("click", () => {
@@ -195,6 +204,25 @@ function setupReelsAutoplay() {
 }
 
 setupReelsAutoplay();
+
+if (heroStage && !prefersReducedMotion.matches) {
+  const resetHeroStage = () => {
+    heroStage.style.setProperty("--spot-x", "50%");
+    heroStage.style.setProperty("--spot-y", "50%");
+  };
+
+  heroStage.addEventListener("pointermove", (event) => {
+    const rect = heroStage.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    heroStage.style.setProperty("--spot-x", `${x.toFixed(2)}%`);
+    heroStage.style.setProperty("--spot-y", `${y.toFixed(2)}%`);
+  });
+
+  heroStage.addEventListener("pointerleave", resetHeroStage);
+  resetHeroStage();
+}
 
 videoModal?.addEventListener("click", (event) => {
   if (event.target.hasAttribute("data-close-modal")) {
