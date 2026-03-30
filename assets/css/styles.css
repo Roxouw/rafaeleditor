@@ -250,6 +250,53 @@
       flex-wrap: wrap;
       margin-top: 30px;
     }
+    .hero-decision-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .hero-decision-card,
+    .offer-next-step,
+    .offer-objection-card,
+    .decision-band {
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    }
+    .hero-decision-card {
+      min-height: 128px;
+      padding: 16px 18px;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+    .hero-decision-label,
+    .decision-band-label,
+    .offer-next-step-label,
+    .offer-objection-label {
+      color: var(--accent);
+      font-size: .72rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+    .hero-decision-card strong,
+    .offer-next-step strong,
+    .offer-objection-card strong,
+    .decision-band strong {
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+    .hero-decision-card p,
+    .offer-next-step p,
+    .decision-band p {
+      margin-top: 0;
+      font-size: .9rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
     .hero-offer-strip {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -647,6 +694,38 @@
       color: var(--muted);
       font-size: .85rem;
       line-height: 1.6;
+    }
+    .proof-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .proof-summary-card,
+    .offer-fit-box {
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .proof-summary-card {
+      min-height: 120px;
+      padding: 18px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+    .proof-summary-label,
+    .offer-fit-label {
+      color: var(--accent);
+      font-size: .72rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+    .proof-summary-card strong {
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.45;
     }
     .whatsapp-float {
       position: fixed;
@@ -1055,6 +1134,22 @@
       grid-template-columns: 1fr;
       gap: 18px;
     }
+    .decision-band {
+      margin-top: 18px;
+      padding: 22px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .decision-band-copy {
+      display: grid;
+      gap: 8px;
+      max-width: 52ch;
+    }
+    .decision-band .pill-btn {
+      flex: 0 0 auto;
+    }
     .service-panel {
       min-height: auto;
       padding: 28px;
@@ -1204,6 +1299,12 @@
       font-size: .96rem;
       line-height: 1.7;
     }
+    .offer-next-step {
+      padding: 18px 20px;
+      display: grid;
+      gap: 8px;
+      max-width: 52ch;
+    }
     .offer-list {
       list-style: none;
       display: grid;
@@ -1257,6 +1358,64 @@
       font-size: .98rem;
       line-height: 1.45;
       color: var(--text);
+    }
+    .offer-objection-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .offer-objection-card {
+      min-height: 108px;
+      padding: 16px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+    .offer-fit-box {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      overflow: hidden;
+    }
+    .offer-fit-column {
+      padding: 18px 20px;
+      display: grid;
+      gap: 12px;
+    }
+    .offer-fit-column + .offer-fit-column {
+      border-left: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.015);
+    }
+    .offer-fit-list {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      color: rgba(255,255,255,.9);
+    }
+    .offer-fit-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.55;
+    }
+    .offer-fit-list li::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      margin-top: 8px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      background: var(--accent);
+    }
+    .offer-fit-list--muted li::before {
+      background: rgba(255,255,255,.34);
+    }
+    .offer-closer {
+      max-width: 50ch;
+      color: rgba(244,247,242,.92);
+      font-size: 1rem;
+      line-height: 1.7;
+      font-weight: 700;
     }
     .contact-mini {
       display: grid;
@@ -1335,6 +1494,9 @@
       .proof-item:nth-last-child(-n + 2) { border-bottom: none; }
       .hero-matrix { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .services-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero-decision-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .proof-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .offer-objection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (min-width: 820px) {
       .hero-grid {
@@ -1386,6 +1548,9 @@
       }
       .services-layout, .process-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
       .work-visual { min-height: 260px; }
+      .hero-decision-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .proof-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .offer-objection-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     @media (min-width: 1120px) {
       .proof-grid { grid-template-columns: repeat(4, 1fr); }
@@ -1520,6 +1685,14 @@
         grid-template-columns: 1fr;
         gap: 10px;
       }
+      .hero-decision-strip {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .proof-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
       .hero-offer-card {
         min-height: 0;
       }
@@ -1609,6 +1782,23 @@
       }
       .offer-assurance {
         grid-template-columns: 1fr;
+      }
+      .offer-objection-grid {
+        grid-template-columns: 1fr;
+      }
+      .offer-fit-box {
+        grid-template-columns: 1fr;
+      }
+      .offer-fit-column + .offer-fit-column {
+        border-left: 0;
+        border-top: 1px solid rgba(255,255,255,.08);
+      }
+      .decision-band {
+        padding: 18px;
+        display: grid;
+      }
+      .decision-band .pill-btn {
+        width: 100%;
       }
       .video-modal {
         padding: 12px;
@@ -1729,6 +1919,14 @@
       }
       .hero-offer-strip {
         margin-top: 14px;
+      }
+      .hero-decision-card,
+      .proof-summary-card,
+      .offer-next-step,
+      .offer-objection-card,
+      .offer-fit-box,
+      .decision-band {
+        border-radius: 18px;
       }
       .hero-offer-card {
         padding: 14px 16px;
